@@ -1,1 +1,7 @@
 project_id = "zshdkxvrpvylxzhxsprq"
+
+[functions.ai-coach]
+verify_jwt = false
+
+[functions.battle-questions]
+verify_jwt = false
