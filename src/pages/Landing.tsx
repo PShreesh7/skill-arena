@@ -116,7 +116,7 @@ const Landing = () => {
       {/* Left side - branding */}
       <div className="hidden lg:flex flex-1 items-center justify-center p-12 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-glow-purple/5" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
+        
         <motion.div initial={{
         opacity: 0,
         y: 30
@@ -197,15 +197,15 @@ const Landing = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               {mode === 'signup' && <div>
                   <label className="text-sm font-medium text-foreground mb-1.5 block">Username</label>
-                  <input type="text" value={username} onChange={e => setUsername(e.target.value)} className="w-full px-4 py-3 bg-muted border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all" placeholder="cyberwarrior" required />
+                  <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} className="w-full px-4 py-3 bg-muted border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all" placeholder="cyberwarrior" required />
                 </div>}
               <div>
                 <label className="text-sm font-medium text-foreground mb-1.5 block">Email</label>
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full px-4 py-3 bg-muted border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all" placeholder="you@example.com" required />
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-3 bg-muted border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all" placeholder="you@example.com" required />
               </div>
               {(mode === 'login' || mode === 'signup') && <div>
                   <label className="text-sm font-medium text-foreground mb-1.5 block">Password</label>
-                  <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full px-4 py-3 bg-muted border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all" placeholder="••••••••" required minLength={6} />
+                  <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-4 py-3 bg-muted border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all" placeholder="••••••••" required minLength={6} />
                 </div>}
 
               <button type="submit" disabled={submitting} className="w-full py-3 bg-primary text-primary-foreground rounded-lg font-display font-semibold tracking-wider hover:bg-primary/90 transition-all flex items-center justify-center gap-2 mt-6 disabled:opacity-50">
