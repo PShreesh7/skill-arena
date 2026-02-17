@@ -26,6 +26,7 @@ interface UserContextType {
   logout: () => Promise<void>;
   completeAssessment: (elo: number) => Promise<void>;
   updateElo: (delta: number) => Promise<void>;
+  updateBattleResult: (won: boolean, draw: boolean, eloDelta: number, tokensEarned: number) => Promise<void>;
   addBadge: (badge: string) => Promise<void>;
 }
 
@@ -136,6 +137,39 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(prev => prev ? { ...prev, elo: newElo } : prev);
   }, [user]);
 
+  const updateBattleResult = useCallback(async (won: boolean, draw: boolean, eloDelta: number, tokensEarned: number) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session || !user) return;
+    const newElo = Math.max(0, user.elo + eloDelta);
+    const newWins = user.wins + (won ? 1 : 0);
+    const newLosses = user.losses + (!won && !draw ? 1 : 0);
+    const newStreak = won ? user.streak + 1 : 0;
+    const newXp = user.xp + tokensEarned;
+    const newTotalBattles = user.totalBattles + 1;
+    const newLevel = Math.floor(newElo / 200) + 1;
+
+    await supabase.from('profiles').update({
+      elo: newElo,
+      wins: newWins,
+      losses: newLosses,
+      streak: newStreak,
+      xp: newXp,
+      total_battles: newTotalBattles,
+      level: newLevel,
+    }).eq('user_id', session.user.id);
+
+    setUser(prev => prev ? {
+      ...prev,
+      elo: newElo,
+      wins: newWins,
+      losses: newLosses,
+      streak: newStreak,
+      xp: newXp,
+      totalBattles: newTotalBattles,
+      level: newLevel,
+    } : prev);
+  }, [user]);
+
   const addBadge = useCallback(async (badge: string) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session || !user) return;
@@ -151,7 +185,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isAuthenticated: !!user,
       loading,
       login, signup, logout,
-      completeAssessment, updateElo, addBadge,
+      completeAssessment, updateElo, updateBattleResult, addBadge,
     }}>
       {children}
     </UserContext.Provider>

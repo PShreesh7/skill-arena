@@ -47,7 +47,7 @@ const mockLiveMatches = [
 const QUESTION_TIME_LIMIT = 30; // seconds per question
 
 const Battle = () => {
-  const { user, updateElo } = useUser();
+  const { user, updateBattleResult } = useUser();
   const [activeTab, setActiveTab] = useState<Tab>('find');
   const [friendCode, setFriendCode] = useState('');
   const [roomName, setRoomName] = useState('');
@@ -64,6 +64,7 @@ const Battle = () => {
   const [score, setScore] = useState(0);
   const [opponentScore, setOpponentScore] = useState(0);
   const [eloDelta, setEloDelta] = useState(0);
+  const [tokensEarned, setTokensEarned] = useState(0);
   const [battleStartTime, setBattleStartTime] = useState(0);
 
   
@@ -149,7 +150,6 @@ const Battle = () => {
 
   const finishBattle = async (finalAnswers: (number | null)[]) => {
     const correct = finalAnswers.filter((a, i) => a === questions[i]?.correctIndex).length;
-    const totalTime = Math.round((Date.now() - battleStartTime) / 1000);
 
     // Calculate final scores
     const myFinalScore = score + (correct === questions.length ? 200 : 0); // perfect bonus
@@ -163,14 +163,21 @@ const Battle = () => {
     const actualScore = won ? 1 : draw ? 0.5 : 0;
     const delta = Math.round(K * (actualScore - expectedScore));
 
+    // CC Token rewards
+    const baseTokens = won ? 50 : draw ? 20 : 10;
+    const accuracyBonus = Math.round((correct / questions.length) * 30);
+    const streakBonus = won && user ? Math.min(user.streak * 5, 25) : 0;
+    const earnedTokens = baseTokens + accuracyBonus + streakBonus;
+
     setEloDelta(delta);
+    setTokensEarned(earnedTokens);
     setPhase('result');
 
-    // Persist ELO change
+    // Persist full battle result
     try {
-      await updateElo(delta);
+      await updateBattleResult(won, draw, delta, earnedTokens);
     } catch (err) {
-      console.error('Failed to update ELO:', err);
+      console.error('Failed to update battle result:', err);
     }
   };
 
@@ -184,6 +191,7 @@ const Battle = () => {
     setScore(0);
     setOpponentScore(0);
     setEloDelta(0);
+    setTokensEarned(0);
     setTimeLeft(QUESTION_TIME_LIMIT);
   };
 
@@ -354,7 +362,7 @@ const Battle = () => {
             {won ? 'Well played, champion!' : draw ? 'An evenly matched battle.' : 'Better luck next time!'}
           </p>
 
-          <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-4 gap-3 mb-6">
             <div className="glass-card p-3 rounded-lg">
               <p className="text-xs text-muted-foreground">Score</p>
               <p className="text-xl font-bold text-primary font-mono">{score}</p>
@@ -368,6 +376,10 @@ const Battle = () => {
               <p className={`text-xl font-bold font-mono ${eloDelta > 0 ? 'text-accent' : eloDelta < 0 ? 'text-destructive' : 'text-muted-foreground'}`}>
                 {eloDelta > 0 ? '+' : ''}{eloDelta}
               </p>
+            </div>
+            <div className="glass-card p-3 rounded-lg">
+              <p className="text-xs text-muted-foreground">CC Tokens</p>
+              <p className="text-xl font-bold text-secondary font-mono">+{tokensEarned}</p>
             </div>
           </div>
 
