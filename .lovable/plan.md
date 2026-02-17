@@ -1,23 +1,27 @@
 
-# Replace Logo with Uploaded Skill Arena Image
 
-## What will change
-The uploaded Skill Arena logo will replace the current icon-based logo in all locations across the app.
+# Fix AI Coach Unauthorized Access
 
-## Locations to update
+## Problem
+The AI Coach page sends the Supabase anon key (`VITE_SUPABASE_PUBLISHABLE_KEY`) as the Authorization header. However, the edge function validates this as a user JWT using `getClaims()`, which fails because the anon key is not a user session token.
 
-1. **Sidebar (`src/components/AppSidebar.tsx`)** - Replace the Swords icon + text block with the logo image
-2. **Landing page (`src/pages/Landing.tsx`)** - Replace the Swords icon + text in both the left branding panel and the mobile header
+## Solution
+Update the frontend (`src/pages/AICoach.tsx`) to retrieve the logged-in user's actual session token and send that instead.
 
-## Steps
+## Changes
 
-1. Copy the uploaded image to `src/assets/skill-arena-logo.png`
-2. Update **AppSidebar.tsx**: Replace the `Swords` icon div with an `<img>` tag importing the logo, sized appropriately for the sidebar (~40px height)
-3. Update **Landing.tsx**:
-   - Left panel: Replace the large Swords icon + "Skill Arena" heading with the logo image (~64px height)
-   - Mobile header: Replace the small Swords icon + "CodeClash" text with a smaller logo image
+### `src/pages/AICoach.tsx`
 
-## Technical details
-- Import the image as an ES6 module: `import skillArenaLogo from "@/assets/skill-arena-logo.png"`
-- The logo has a dark/transparent background which suits the app's dark theme
-- Text labels like "Skill Arena" and "AI Powered Skill Evolution" in the sidebar can be kept or removed since the logo already contains that text -- they will be removed to avoid duplication
+1. Import the Supabase client:
+   ```typescript
+   import { supabase } from '@/integrations/supabase/client';
+   ```
+
+2. Update the `streamChat` function to fetch the real user session token before making the request:
+   - Call `supabase.auth.getSession()` to get the current session
+   - If no session exists, throw an error prompting the user to log in
+   - Use `session.access_token` in the Authorization header instead of the anon key
+
+### No backend changes needed
+The edge function (`supabase/functions/ai-coach/index.ts`) already correctly validates JWTs using `getClaims()`. The only issue is on the client side sending the wrong token.
+
