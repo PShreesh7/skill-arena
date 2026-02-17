@@ -1,73 +1,118 @@
-# Welcome to your Lovable project
+# Skill Arena ⚔️
 
-## Project info
+![React](https://img.shields.io/badge/React-18-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)
+![Vite](https://img.shields.io/badge/Vite-5.x-purple)
+![Supabase](https://img.shields.io/badge/Supabase-Backend-green)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-UI-38bdf8)
+![Status](https://img.shields.io/badge/status-active-success)
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+Skill Arena is a competitive coding and skill-development platform where users can assess their programming ability, track progress, compete in coding battles, and learn through guided modules.
 
-## How can I edit this code?
+This project demonstrates authentication systems, protected routing, state management, and modern frontend architecture.
 
-There are several ways of editing your application.
+---
 
-**Use Lovable**
+## Live Demo
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+(Deploy link will go here after deployment)
 
-Changes made via Lovable will be committed automatically to this repo.
+---
 
-**Use your preferred IDE**
+## Features
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+* Secure authentication using Supabase
+* Skill assessment workflow
+* Dashboard analytics
+* Learning modules
+* Coding battle interface
+* Progress tracking
+* Match history
+* AI coach module
+* Token shop system
+* Responsive UI with animations
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+---
 
-Follow these steps:
+## Tech Stack
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+Frontend:
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+* React
+* TypeScript
+* Vite
+* Tailwind CSS
+* shadcn/ui
+* Framer Motion
 
-# Step 3: Install the necessary dependencies.
-npm i
+Backend / Services:
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+* Supabase Authentication
+* Supabase Database
+
+State & Routing:
+
+* React Query
+* React Router
+
+---
+
+## Installation
+
+Clone the repository:
+
+```bash
+git clone <YOUR_REPO_URL>
+cd skill-arena
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+Create `.env` file:
+
+```env
+VITE_SUPABASE_URL=your_url
+VITE_SUPABASE_PUBLISHABLE_KEY=your_key
+```
+
+Run locally:
+
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+---
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Folder Structure
 
-**Use GitHub Codespaces**
+```
+src/
+ ├ components/
+ ├ contexts/
+ ├ hooks/
+ ├ integrations/
+ ├ lib/
+ ├ pages/
+ ├ App.tsx
+ └ main.tsx
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+---
 
-## What technologies are used for this project?
+## Deployment
 
-This project is built with:
+This project can be deployed using Vercel.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```bash
+npm run build
+```
 
-## How can I deploy this project?
+---
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+## Author
 
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Shreesh Pandey
