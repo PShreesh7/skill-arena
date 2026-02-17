@@ -1,15 +1,24 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useUser } from '@/contexts/UserContext';
-import { motion } from 'framer-motion';
-import { BookOpen, CheckCircle2, RotateCcw, Lightbulb, Lock, ArrowRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { BookOpen, CheckCircle2, RotateCcw, Lightbulb, Lock, ArrowRight, XCircle, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface Topic {
   id: string;
   name: string;
   category: string;
-  mastery: number; // 0-100
+  mastery: number;
   status: 'locked' | 'available' | 'in-progress' | 'mastered';
   suggestedByAI: boolean;
+}
+
+interface PracticeQuestion {
+  question: string;
+  code?: string;
+  options: string[];
+  correctIndex: number;
 }
 
 const mockTopics: Topic[] = [
@@ -32,13 +41,91 @@ const statusStyles = {
 
 const Learning = () => {
   const { user } = useUser();
-  const [topics] = useState(mockTopics);
+  const [topics, setTopics] = useState(mockTopics);
   const [selectedTopic, setSelectedTopic] = useState<Topic | null>(null);
+
+  // Practice quiz state
+  const [practiceMode, setPracticeMode] = useState(false);
+  const [practiceQuestions, setPracticeQuestions] = useState<PracticeQuestion[]>([]);
+  const [currentQ, setCurrentQ] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [quizDone, setQuizDone] = useState(false);
+  const [loadingQuestions, setLoadingQuestions] = useState(false);
+
+  const startPractice = useCallback(async (topic: Topic) => {
+    setLoadingQuestions(true);
+    setPracticeMode(true);
+    setCurrentQ(0);
+    setSelectedAnswer(null);
+    setCorrectCount(0);
+    setQuizDone(false);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Please log in first');
+
+      const { data, error } = await supabase.functions.invoke('battle-questions', {
+        body: { elo: user.elo, questionCount: 3 },
+      });
+
+      if (error) throw new Error(error.message);
+      if (data?.error) throw new Error(data.error);
+
+      // Filter to topic-relevant questions or use all
+      const questions = (data.questions || []).map((q: any) => ({
+        question: q.question,
+        code: q.code,
+        options: q.options,
+        correctIndex: q.correctIndex,
+      }));
+
+      if (questions.length === 0) throw new Error('No questions generated');
+      setPracticeQuestions(questions);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to load questions');
+      setPracticeMode(false);
+    } finally {
+      setLoadingQuestions(false);
+    }
+  }, [user.elo]);
+
+  const handlePracticeAnswer = (idx: number) => {
+    if (selectedAnswer !== null) return;
+    setSelectedAnswer(idx);
+    const isCorrect = idx === practiceQuestions[currentQ]?.correctIndex;
+    if (isCorrect) setCorrectCount(prev => prev + 1);
+
+    setTimeout(() => {
+      if (currentQ < practiceQuestions.length - 1) {
+        setCurrentQ(prev => prev + 1);
+        setSelectedAnswer(null);
+      } else {
+        setQuizDone(true);
+        // Update mastery for the topic
+        if (selectedTopic) {
+          const accuracy = ((correctCount + (isCorrect ? 1 : 0)) / practiceQuestions.length) * 100;
+          const newMastery = Math.min(100, Math.round(selectedTopic.mastery + accuracy * 0.1));
+          setTopics(prev => prev.map(t =>
+            t.id === selectedTopic.id
+              ? { ...t, mastery: newMastery, status: newMastery >= 100 ? 'mastered' : 'in-progress' }
+              : t
+          ));
+          setSelectedTopic(prev => prev ? { ...prev, mastery: newMastery } : prev);
+        }
+      }
+    }, 1200);
+  };
+
+  const closePractice = () => {
+    setPracticeMode(false);
+    setPracticeQuestions([]);
+    setSelectedTopic(null);
+  };
 
   if (!user) return null;
 
   const weakAreas = topics.filter(t => t.mastery > 0 && t.mastery < 60);
-  const suggested = topics.filter(t => t.suggestedByAI);
 
   return (
     <div className="space-y-8">
@@ -63,7 +150,7 @@ const Learning = () => {
               Based on your ELO ({user.elo}) and recent performance, focus on:
             </p>
             <div className="flex flex-wrap gap-2">
-              {suggested.map(t => (
+              {topics.filter(t => t.suggestedByAI).map(t => (
                 <button
                   key={t.id}
                   onClick={() => setSelectedTopic(t)}
@@ -146,42 +233,151 @@ const Learning = () => {
         </div>
       </div>
 
-      {/* Topic detail modal */}
+      {/* Topic detail / Practice modal */}
       {selectedTopic && (
-        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50 p-8" onClick={() => setSelectedTopic(null)}>
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={closePractice}>
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             onClick={e => e.stopPropagation()}
-            className="glass-card gradient-border p-8 max-w-md w-full"
+            className="glass-card gradient-border p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto"
           >
-            <span className="text-xs font-mono text-primary tracking-widest">{selectedTopic.category}</span>
-            <h2 className="font-display text-2xl font-bold text-foreground mt-2 mb-2">{selectedTopic.name}</h2>
-            <p className="text-muted-foreground text-sm mb-6">
-              {selectedTopic.mastery === 0
-                ? 'Start learning this topic with AI-generated exercises.'
-                : `You've mastered ${selectedTopic.mastery}% of this topic. Keep practicing!`}
-            </p>
+            {/* Loading state */}
+            {loadingQuestions && (
+              <div className="text-center py-10">
+                <Loader2 className="w-10 h-10 text-primary animate-spin mx-auto mb-4" />
+                <p className="text-muted-foreground text-sm font-mono">Generating AI questions for {selectedTopic.name}...</p>
+              </div>
+            )}
 
-            <div className="h-2 bg-muted rounded-full mb-6">
-              <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${selectedTopic.mastery}%` }} />
-            </div>
+            {/* Topic info (before practice starts) */}
+            {!practiceMode && !loadingQuestions && (
+              <>
+                <span className="text-xs font-mono text-primary tracking-widest">{selectedTopic.category}</span>
+                <h2 className="font-display text-2xl font-bold text-foreground mt-2 mb-2">{selectedTopic.name}</h2>
+                <p className="text-muted-foreground text-sm mb-6">
+                  {selectedTopic.mastery === 0
+                    ? 'Start learning this topic with AI-generated exercises.'
+                    : `You've mastered ${selectedTopic.mastery}% of this topic. Keep practicing!`}
+                </p>
 
-            <div className="flex gap-3">
-              <button
-                onClick={() => setSelectedTopic(null)}
-                className="flex-1 py-3 bg-primary text-primary-foreground rounded-lg font-display font-semibold text-sm tracking-wider hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
-              >
-                {selectedTopic.mastery === 0 ? 'Start Learning' : 'Continue'}
-                <ArrowRight className="w-4 h-4" />
-              </button>
-              <button
-                onClick={() => setSelectedTopic(null)}
-                className="px-4 py-3 bg-muted text-muted-foreground rounded-lg text-sm hover:text-foreground transition-colors"
-              >
-                Close
-              </button>
-            </div>
+                <div className="h-2 bg-muted rounded-full mb-6">
+                  <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${selectedTopic.mastery}%` }} />
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => startPractice(selectedTopic)}
+                    className="flex-1 py-3 bg-primary text-primary-foreground rounded-lg font-display font-semibold text-sm tracking-wider hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
+                  >
+                    {selectedTopic.mastery === 0 ? 'Start Learning' : 'Practice Now'}
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={closePractice}
+                    className="px-4 py-3 bg-muted text-muted-foreground rounded-lg text-sm hover:text-foreground transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* Practice quiz */}
+            {practiceMode && !loadingQuestions && !quizDone && practiceQuestions.length > 0 && (
+              <>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-xs font-mono text-primary tracking-widest">{selectedTopic.name}</span>
+                  <span className="text-xs font-mono text-muted-foreground">
+                    {currentQ + 1}/{practiceQuestions.length}
+                  </span>
+                </div>
+
+                {/* Progress dots */}
+                <div className="flex gap-1.5 mb-6">
+                  {practiceQuestions.map((_, i) => (
+                    <div key={i} className={`h-1.5 flex-1 rounded-full ${
+                      i < currentQ ? 'bg-accent' : i === currentQ ? 'bg-primary' : 'bg-muted'
+                    }`} />
+                  ))}
+                </div>
+
+                <AnimatePresence mode="wait">
+                  <motion.div key={currentQ} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+                    <h3 className="font-display text-base font-bold text-foreground mb-4">
+                      {practiceQuestions[currentQ].question}
+                    </h3>
+
+                    {practiceQuestions[currentQ].code && (
+                      <pre className="bg-muted p-3 rounded-lg text-sm font-mono text-foreground mb-4 overflow-x-auto border border-border whitespace-pre-wrap">
+                        {practiceQuestions[currentQ].code}
+                      </pre>
+                    )}
+
+                    <div className="space-y-2">
+                      {practiceQuestions[currentQ].options.map((opt, idx) => {
+                        const showFeedback = selectedAnswer !== null;
+                        const isCorrect = idx === practiceQuestions[currentQ].correctIndex;
+                        const isSelected = selectedAnswer === idx;
+
+                        return (
+                          <button
+                            key={idx}
+                            onClick={() => handlePracticeAnswer(idx)}
+                            disabled={selectedAnswer !== null}
+                            className={`w-full p-3 rounded-lg border text-left transition-all flex items-center gap-3 text-sm ${
+                              showFeedback && isCorrect
+                                ? 'border-accent bg-accent/10 text-accent'
+                                : showFeedback && isSelected && !isCorrect
+                                ? 'border-destructive bg-destructive/10 text-destructive'
+                                : 'border-border bg-muted/50 text-foreground hover:border-primary/50 hover:bg-primary/5'
+                            }`}
+                          >
+                            <span className="w-7 h-7 rounded-full border border-current flex items-center justify-center text-xs font-mono shrink-0">
+                              {showFeedback && isCorrect ? <CheckCircle2 className="w-4 h-4" /> :
+                               showFeedback && isSelected ? <XCircle className="w-4 h-4" /> :
+                               String.fromCharCode(65 + idx)}
+                            </span>
+                            <span className="font-mono">{opt}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+              </>
+            )}
+
+            {/* Quiz results */}
+            {quizDone && (
+              <div className="text-center">
+                <CheckCircle2 className="w-12 h-12 text-accent mx-auto mb-4" />
+                <h3 className="font-display text-xl font-bold text-foreground mb-2">Practice Complete!</h3>
+                <p className="text-muted-foreground text-sm mb-4">
+                  You got {correctCount}/{practiceQuestions.length} correct
+                </p>
+                <div className="h-2 bg-muted rounded-full mb-6">
+                  <div
+                    className="h-full bg-accent rounded-full transition-all"
+                    style={{ width: `${(correctCount / practiceQuestions.length) * 100}%` }}
+                  />
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => startPractice(selectedTopic)}
+                    className="flex-1 py-3 bg-primary text-primary-foreground rounded-lg font-display font-semibold text-sm hover:bg-primary/90 transition-all"
+                  >
+                    Practice Again
+                  </button>
+                  <button
+                    onClick={closePractice}
+                    className="px-4 py-3 bg-muted text-muted-foreground rounded-lg text-sm hover:text-foreground transition-colors"
+                  >
+                    Done
+                  </button>
+                </div>
+              </div>
+            )}
           </motion.div>
         </div>
       )}
