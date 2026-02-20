@@ -1,10 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useUser } from '@/contexts/UserContext';
 import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, Users, Plus, Trophy, Eye, Swords, Loader2,
-  CheckCircle2, XCircle, ArrowRight, Timer, Zap, Shield, Brain
+  CheckCircle2, XCircle, Timer, Zap, Shield, Brain,
+  Copy, Send, UserPlus, Clock, Crown, Play
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -20,10 +21,7 @@ interface BattleQuestion {
   correctIndex: number;
 }
 
-interface Opponent {
-  username: string;
-  elo: number;
-}
+interface Opponent { username: string; elo: number; }
 
 const tabs: { id: Tab; label: string; icon: any }[] = [
   { id: 'find', label: 'Find Match', icon: Search },
@@ -33,24 +31,34 @@ const tabs: { id: Tab; label: string; icon: any }[] = [
   { id: 'spectate', label: 'Spectate', icon: Eye },
 ];
 
-const mockTournaments = [
-  { id: 1, name: 'Weekly Sprint #42', players: 128, status: 'Open', prize: '500 XP', startIn: '2h 30m' },
-  { id: 2, name: 'Algorithm Masters', players: 64, status: 'Open', prize: '1000 XP', startIn: '1d 5h' },
-  { id: 3, name: 'Frontend Fury', players: 32, status: 'Full', prize: '750 XP', startIn: '45m' },
-];
-
-const mockLiveMatches = [
-  { id: 1, p1: 'NeonCoder', p2: 'ByteStorm', elo1: 1450, elo2: 1520, topic: 'Dynamic Programming', viewers: 23 },
-  { id: 2, p1: 'AlgoQueen', p2: 'StackOverflow', elo1: 1800, elo2: 1750, topic: 'System Design', viewers: 45 },
-];
-
-const QUESTION_TIME_LIMIT = 30; // seconds per question
+const QUESTION_TIME_LIMIT = 30;
 
 const Battle = () => {
   const { user, updateBattleResult } = useUser();
   const [activeTab, setActiveTab] = useState<Tab>('find');
+
+  // Invite tab
   const [friendCode, setFriendCode] = useState('');
+  const [sendingInvite, setSendingInvite] = useState(false);
+  const [pendingInvites, setPendingInvites] = useState<any[]>([]);
+
+  // Custom room tab
   const [roomName, setRoomName] = useState('');
+  const [roomDifficulty, setRoomDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
+  const [creatingRoom, setCreatingRoom] = useState(false);
+  const [rooms, setRooms] = useState<any[]>([]);
+  const [joinCode, setJoinCode] = useState('');
+
+  // Tournament tab
+  const [tournaments, setTournaments] = useState<any[]>([]);
+  const [creatingTournament, setCreatingTournament] = useState(false);
+  const [tournamentName, setTournamentName] = useState('');
+  const [tournamentMaxPlayers, setTournamentMaxPlayers] = useState(8);
+  const [tournamentDifficulty, setTournamentDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
+  const [showCreateTournament, setShowCreateTournament] = useState(false);
+
+  // Spectate tab
+  const [liveRooms, setLiveRooms] = useState<any[]>([]);
 
   // Battle state
   const [phase, setPhase] = useState<BattlePhase>('idle');
@@ -65,50 +73,239 @@ const Battle = () => {
   const [opponentScore, setOpponentScore] = useState(0);
   const [eloDelta, setEloDelta] = useState(0);
   const [tokensEarned, setTokensEarned] = useState(0);
-  const [battleStartTime, setBattleStartTime] = useState(0);
 
-  
-
-  // Timer countdown during battle
+  // ── Load data on tab change ──
   useEffect(() => {
-    if (phase !== 'battle' || submittedAnswer !== null) return;
-    if (timeLeft <= 0) {
-      handleAnswer(-1);
-      return;
-    }
-    const timer = setTimeout(() => setTimeLeft(t => t - 1), 1000);
-    return () => clearTimeout(timer);
-  }, [phase, timeLeft, submittedAnswer]);
+    if (!user) return;
+    if (activeTab === 'invite') loadInvites();
+    if (activeTab === 'custom') loadRooms();
+    if (activeTab === 'tournament') loadTournaments();
+    if (activeTab === 'spectate') loadLiveRooms();
+  }, [activeTab, user]);
 
-  const handleFindMatch = useCallback(async () => {
+  // ── Realtime for rooms & invites ──
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel('battle-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'battle_rooms' }, () => { loadRooms(); loadLiveRooms(); })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'room_participants' }, () => loadRooms())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'battle_invites' }, () => loadInvites())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
+
+  const loadInvites = async () => {
+    if (!user) return;
+    const { data } = await supabase.from('battle_invites').select('*').eq('receiver_code', user.inviteCode).eq('status', 'pending').order('created_at', { ascending: false });
+    setPendingInvites(data || []);
+  };
+
+  const loadRooms = async () => {
+    const { data } = await supabase.from('battle_rooms').select('*, room_participants(*)').eq('status', 'waiting').order('created_at', { ascending: false }).limit(20);
+    setRooms(data || []);
+  };
+
+  const loadTournaments = async () => {
+    const { data } = await supabase.from('tournaments').select('*, tournament_participants(*)').in('status', ['open', 'full']).order('starts_at', { ascending: true }).limit(20);
+    setTournaments(data || []);
+  };
+
+  const loadLiveRooms = async () => {
+    const { data } = await supabase.from('battle_rooms').select('*, room_participants(*)').eq('status', 'in_progress').order('created_at', { ascending: false }).limit(10);
+    setLiveRooms(data || []);
+  };
+
+  // ── Invite Friend ──
+  const handleSendInvite = async () => {
+    if (!user || !friendCode.trim()) return;
+    setSendingInvite(true);
+    try {
+      // Check if friend code exists
+      const { data: target } = await supabase.from('profiles').select('invite_code').eq('invite_code', friendCode.trim().toUpperCase()).maybeSingle();
+      if (!target) { toast.error('Invalid friend code'); setSendingInvite(false); return; }
+      if (friendCode.trim().toUpperCase() === user.inviteCode) { toast.error("You can't invite yourself!"); setSendingInvite(false); return; }
+
+      // Create a private room and invite
+      const { data: room, error: roomErr } = await supabase.from('battle_rooms').insert({ name: `${user.username}'s Room`, creator_id: user.id, is_private: true, difficulty: 'medium' }).select().single();
+      if (roomErr) throw roomErr;
+
+      await supabase.from('room_participants').insert({ room_id: room.id, user_id: user.id, username: user.username, elo: user.elo });
+      await supabase.from('battle_invites').insert({ sender_id: user.id, sender_username: user.username, receiver_code: friendCode.trim().toUpperCase(), room_id: room.id });
+
+      toast.success('Invite sent!');
+      setFriendCode('');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to send invite');
+    }
+    setSendingInvite(false);
+  };
+
+  const handleAcceptInvite = async (invite: any) => {
+    if (!user) return;
+    try {
+      await supabase.from('battle_invites').update({ status: 'accepted' }).eq('id', invite.id);
+      if (invite.room_id) {
+        await supabase.from('room_participants').insert({ room_id: invite.room_id, user_id: user.id, username: user.username, elo: user.elo });
+        toast.success('Joined the battle room!');
+        // Start battle from this room
+        handleStartRoomBattle(invite.room_id);
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to accept invite');
+    }
+  };
+
+  const handleDeclineInvite = async (invite: any) => {
+    await supabase.from('battle_invites').update({ status: 'declined' }).eq('id', invite.id);
+    loadInvites();
+  };
+
+  // ── Custom Room ──
+  const handleCreateRoom = async () => {
+    if (!user || !roomName.trim()) return;
+    setCreatingRoom(true);
+    try {
+      const { data: room, error } = await supabase.from('battle_rooms').insert({ name: roomName.trim(), creator_id: user.id, difficulty: roomDifficulty }).select().single();
+      if (error) throw error;
+      await supabase.from('room_participants').insert({ room_id: room.id, user_id: user.id, username: user.username, elo: user.elo });
+      toast.success(`Room "${roomName}" created! Code: ${room.room_code}`);
+      setRoomName('');
+      loadRooms();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to create room');
+    }
+    setCreatingRoom(false);
+  };
+
+  const handleJoinRoom = async (roomId: string) => {
+    if (!user) return;
+    try {
+      await supabase.from('room_participants').insert({ room_id: roomId, user_id: user.id, username: user.username, elo: user.elo });
+      toast.success('Joined room!');
+      loadRooms();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to join room');
+    }
+  };
+
+  const handleJoinByCode = async () => {
+    if (!joinCode.trim()) return;
+    const { data: room } = await supabase.from('battle_rooms').select('id').eq('room_code', joinCode.trim().toUpperCase()).eq('status', 'waiting').maybeSingle();
+    if (!room) { toast.error('Room not found'); return; }
+    handleJoinRoom(room.id);
+    setJoinCode('');
+  };
+
+  const handleStartRoomBattle = async (roomId: string) => {
+    // Start a battle from a room — fetch questions and begin
+    const room = rooms.find(r => r.id === roomId);
+    const eloForQuestions = user?.elo || 0;
     setPhase('searching');
     try {
+      await supabase.from('battle_rooms').update({ status: 'in_progress' }).eq('id', roomId);
       const { data, error } = await supabase.functions.invoke('battle-questions', {
-        body: { elo: user?.elo || 0, questionCount: 5 },
+        body: { elo: eloForQuestions, questionCount: 5 },
       });
-
-      if (error) throw new Error(error.message || 'Failed to fetch questions');
+      if (error) throw new Error(error.message);
       if (data?.error) throw new Error(data.error);
 
       setQuestions(data.questions);
       setOpponent(data.opponent);
       setDifficulty(data.difficulty);
       setAnswers(Array(data.questions.length).fill(null));
-
-      await new Promise(r => setTimeout(r, 2000));
+      await new Promise(r => setTimeout(r, 1500));
       setPhase('found');
-
       setTimeout(() => {
         setPhase('battle');
-        setCurrentQ(0);
-        setScore(0);
-        setOpponentScore(0);
-        setTimeLeft(QUESTION_TIME_LIMIT);
-        setSubmittedAnswer(null);
-        setBattleStartTime(Date.now());
+        setCurrentQ(0); setScore(0); setOpponentScore(0);
+        setTimeLeft(QUESTION_TIME_LIMIT); setSubmittedAnswer(null);
       }, 3000);
     } catch (err: any) {
-      console.error('Battle error:', err);
+      toast.error(err.message || 'Failed to start battle');
+      setPhase('idle');
+    }
+  };
+
+  // ── Tournaments ──
+  const handleCreateTournament = async () => {
+    if (!user || !tournamentName.trim()) return;
+    setCreatingTournament(true);
+    try {
+      const { data: t, error } = await supabase.from('tournaments').insert({
+        name: tournamentName.trim(), creator_id: user.id,
+        max_players: tournamentMaxPlayers, difficulty: tournamentDifficulty,
+        prize_xp: tournamentMaxPlayers * 100,
+      }).select().single();
+      if (error) throw error;
+      await supabase.from('tournament_participants').insert({ tournament_id: t.id, user_id: user.id, username: user.username, elo: user.elo });
+      await supabase.from('tournaments').update({ current_players: 1 }).eq('id', t.id);
+      toast.success(`Tournament "${tournamentName}" created!`);
+      setTournamentName(''); setShowCreateTournament(false);
+      loadTournaments();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to create tournament');
+    }
+    setCreatingTournament(false);
+  };
+
+  const handleJoinTournament = async (tournamentId: string) => {
+    if (!user) return;
+    try {
+      const t = tournaments.find(x => x.id === tournamentId);
+      if (t && t.current_players >= t.max_players) { toast.error('Tournament is full'); return; }
+      await supabase.from('tournament_participants').insert({ tournament_id: tournamentId, user_id: user.id, username: user.username, elo: user.elo });
+      const newCount = (t?.current_players || 0) + 1;
+      await supabase.from('tournaments').update({
+        current_players: newCount,
+        status: newCount >= (t?.max_players || 8) ? 'full' : 'open',
+      }).eq('id', tournamentId);
+      toast.success('Joined tournament!');
+      loadTournaments();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to join');
+    }
+  };
+
+  // ── Spectate ──
+  const handleSpectate = (roomId: string) => {
+    // For now just show a toast — real spectating would use realtime
+    toast.info('Spectating... Watch mode coming soon with live question feed!');
+  };
+
+  // ── Copy invite code ──
+  const copyInviteCode = () => {
+    if (!user) return;
+    navigator.clipboard.writeText(user.inviteCode);
+    toast.success('Invite code copied!');
+  };
+
+  // ── Timer ──
+  useEffect(() => {
+    if (phase !== 'battle' || submittedAnswer !== null) return;
+    if (timeLeft <= 0) { handleAnswer(-1); return; }
+    const timer = setTimeout(() => setTimeLeft(t => t - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [phase, timeLeft, submittedAnswer]);
+
+  // ── Find Match ──
+  const handleFindMatch = useCallback(async () => {
+    setPhase('searching');
+    try {
+      const { data, error } = await supabase.functions.invoke('battle-questions', {
+        body: { elo: user?.elo || 0, questionCount: 5 },
+      });
+      if (error) throw new Error(error.message || 'Failed to fetch questions');
+      if (data?.error) throw new Error(data.error);
+      setQuestions(data.questions); setOpponent(data.opponent); setDifficulty(data.difficulty);
+      setAnswers(Array(data.questions.length).fill(null));
+      await new Promise(r => setTimeout(r, 2000));
+      setPhase('found');
+      setTimeout(() => {
+        setPhase('battle'); setCurrentQ(0); setScore(0); setOpponentScore(0);
+        setTimeLeft(QUESTION_TIME_LIMIT); setSubmittedAnswer(null);
+      }, 3000);
+    } catch (err: any) {
       toast.error(err.message || 'Failed to start battle');
       setPhase('idle');
     }
@@ -117,98 +314,57 @@ const Battle = () => {
   const handleAnswer = useCallback((idx: number) => {
     if (submittedAnswer !== null || phase !== 'battle') return;
     setSubmittedAnswer(idx);
-
     const isCorrect = idx === questions[currentQ]?.correctIndex;
-    const newAnswers = [...answers];
-    newAnswers[currentQ] = idx;
-    setAnswers(newAnswers);
-
-    if (isCorrect) {
-      const timeBonus = Math.max(0, timeLeft);
-      const points = 100 + timeBonus * 3;
-      setScore(prev => prev + points);
-    }
-
-    // Simulate opponent answering
+    const newAnswers = [...answers]; newAnswers[currentQ] = idx; setAnswers(newAnswers);
+    if (isCorrect) { setScore(prev => prev + 100 + Math.max(0, timeLeft) * 3); }
     const opponentCorrectChance = opponent ? Math.min(0.8, opponent.elo / 2500) : 0.5;
-    if (Math.random() < opponentCorrectChance) {
-      const opponentTimeBonus = Math.floor(Math.random() * 20);
-      setOpponentScore(prev => prev + 100 + opponentTimeBonus * 3);
-    }
-
+    if (Math.random() < opponentCorrectChance) { setOpponentScore(prev => prev + 100 + Math.floor(Math.random() * 20) * 3); }
     setTimeout(() => {
       if (currentQ < questions.length - 1) {
-        setCurrentQ(prev => prev + 1);
-        setSubmittedAnswer(null);
-        setTimeLeft(QUESTION_TIME_LIMIT);
-      } else {
-        // Battle complete — calculate results
-        finishBattle(newAnswers);
-      }
+        setCurrentQ(prev => prev + 1); setSubmittedAnswer(null); setTimeLeft(QUESTION_TIME_LIMIT);
+      } else { finishBattle(newAnswers); }
     }, 1500);
   }, [submittedAnswer, phase, currentQ, questions, answers, timeLeft, opponent]);
 
   const finishBattle = async (finalAnswers: (number | null)[]) => {
     const correct = finalAnswers.filter((a, i) => a === questions[i]?.correctIndex).length;
-
-    // Calculate final scores
-    const myFinalScore = score + (correct === questions.length ? 200 : 0); // perfect bonus
-    const oppFinalScore = opponentScore;
-    const won = myFinalScore > oppFinalScore;
-    const draw = myFinalScore === oppFinalScore;
-
-    // ELO calculation (simplified K-factor)
+    const myFinalScore = score + (correct === questions.length ? 200 : 0);
+    const won = myFinalScore > opponentScore; const draw = myFinalScore === opponentScore;
     const K = 32;
     const expectedScore = 1 / (1 + Math.pow(10, ((opponent?.elo || (user?.elo ?? 0)) - (user?.elo ?? 0)) / 400));
-    const actualScore = won ? 1 : draw ? 0.5 : 0;
-    const delta = Math.round(K * (actualScore - expectedScore));
-
-    // CC Token rewards
+    const delta = Math.round(K * ((won ? 1 : draw ? 0.5 : 0) - expectedScore));
     const baseTokens = won ? 50 : draw ? 20 : 10;
-    const accuracyBonus = Math.round((correct / questions.length) * 30);
-    const streakBonus = won && user ? Math.min(user.streak * 5, 25) : 0;
-    const earnedTokens = baseTokens + accuracyBonus + streakBonus;
-
-    setEloDelta(delta);
-    setTokensEarned(earnedTokens);
-    setPhase('result');
-
-    // Persist full battle result
-    try {
-      await updateBattleResult(won, draw, delta, earnedTokens);
-    } catch (err) {
-      console.error('Failed to update battle result:', err);
-    }
+    const earnedTokens = baseTokens + Math.round((correct / questions.length) * 30) + (won && user ? Math.min(user.streak * 5, 25) : 0);
+    setEloDelta(delta); setTokensEarned(earnedTokens); setPhase('result');
+    try { await updateBattleResult(won, draw, delta, earnedTokens); } catch {}
   };
 
   const resetBattle = () => {
-    setPhase('idle');
-    setQuestions([]);
-    setOpponent(null);
-    setCurrentQ(0);
-    setAnswers([]);
-    setSubmittedAnswer(null);
-    setScore(0);
-    setOpponentScore(0);
-    setEloDelta(0);
-    setTokensEarned(0);
-    setTimeLeft(QUESTION_TIME_LIMIT);
+    setPhase('idle'); setQuestions([]); setOpponent(null); setCurrentQ(0);
+    setAnswers([]); setSubmittedAnswer(null); setScore(0); setOpponentScore(0);
+    setEloDelta(0); setTokensEarned(0); setTimeLeft(QUESTION_TIME_LIMIT);
   };
+
+  const userInTournament = useCallback((t: any) => {
+    return t.tournament_participants?.some((p: any) => p.user_id === user?.id);
+  }, [user]);
+
+  const userInRoom = useCallback((r: any) => {
+    return r.room_participants?.some((p: any) => p.user_id === user?.id);
+  }, [user]);
 
   if (!user) return null;
 
-  // ─── BATTLE IN PROGRESS ─────────────────────────
+  // ── BATTLE PHASES ──
   if (phase === 'searching') {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="glass-card gradient-border p-10 text-center max-w-md w-full">
           <Loader2 className="w-16 h-16 text-primary animate-spin mx-auto mb-6" />
           <h2 className="font-display text-2xl font-bold text-foreground mb-2">Finding Opponent</h2>
-          <p className="text-muted-foreground text-sm mb-4">Matching you with a player near ELO {user.elo}...</p>
-          <p className="text-xs text-muted-foreground font-mono animate-pulse">Generating AI questions for your skill level...</p>
-          <button onClick={resetBattle} className="mt-6 text-sm text-muted-foreground hover:text-foreground transition-colors">
-            Cancel
-          </button>
+          <p className="text-muted-foreground text-sm mb-4">Matching near ELO {user.elo}...</p>
+          <p className="text-xs text-muted-foreground font-mono animate-pulse">Generating AI questions...</p>
+          <button onClick={resetBattle} className="mt-6 text-sm text-muted-foreground hover:text-foreground transition-colors">Cancel</button>
         </motion.div>
       </div>
     );
@@ -221,26 +377,18 @@ const Battle = () => {
           <h2 className="font-display text-xl font-bold text-foreground mb-8">Opponent Found!</h2>
           <div className="flex items-center justify-center gap-8">
             <motion.div initial={{ x: -50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.2 }} className="text-center">
-              <div className="w-16 h-16 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center mx-auto mb-3">
-                <Shield className="w-8 h-8 text-primary" />
-              </div>
+              <div className="w-16 h-16 rounded-full bg-primary/20 border-2 border-primary flex items-center justify-center mx-auto mb-3"><Shield className="w-8 h-8 text-primary" /></div>
               <p className="font-semibold text-foreground">{user.username}</p>
               <p className="text-sm font-mono text-primary">{user.elo}</p>
             </motion.div>
-            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.5 }}>
-              <Swords className="w-10 h-10 text-secondary" />
-            </motion.div>
+            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.5 }}><Swords className="w-10 h-10 text-secondary" /></motion.div>
             <motion.div initial={{ x: 50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.2 }} className="text-center">
-              <div className="w-16 h-16 rounded-full bg-destructive/20 border-2 border-destructive flex items-center justify-center mx-auto mb-3">
-                <Brain className="w-8 h-8 text-destructive" />
-              </div>
+              <div className="w-16 h-16 rounded-full bg-destructive/20 border-2 border-destructive flex items-center justify-center mx-auto mb-3"><Brain className="w-8 h-8 text-destructive" /></div>
               <p className="font-semibold text-foreground">{opponent.username}</p>
               <p className="text-sm font-mono text-destructive">{opponent.elo}</p>
             </motion.div>
           </div>
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }} className="mt-6 text-sm text-muted-foreground font-mono animate-pulse">
-            Battle starting...
-          </motion.p>
+          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }} className="mt-6 text-sm text-muted-foreground font-mono animate-pulse">Battle starting...</motion.p>
         </motion.div>
       </div>
     );
@@ -249,86 +397,36 @@ const Battle = () => {
   if (phase === 'battle' && questions.length > 0) {
     const q = questions[currentQ];
     const timerColor = timeLeft > 15 ? 'text-accent' : timeLeft > 5 ? 'text-secondary' : 'text-destructive';
-
     return (
       <div className="max-w-3xl mx-auto space-y-6">
-        {/* Score bar */}
         <div className="glass-card p-4 flex items-center justify-between">
-          <div className="text-center">
-            <p className="text-xs text-muted-foreground">{user.username}</p>
-            <p className="text-lg font-bold text-primary font-mono">{score}</p>
-          </div>
-          <div className="flex items-center gap-3">
-            <Timer className={`w-5 h-5 ${timerColor}`} />
-            <span className={`text-2xl font-bold font-mono ${timerColor}`}>{timeLeft}</span>
-          </div>
-          <div className="text-center">
-            <p className="text-xs text-muted-foreground">{opponent?.username}</p>
-            <p className="text-lg font-bold text-destructive font-mono">{opponentScore}</p>
-          </div>
+          <div className="text-center"><p className="text-xs text-muted-foreground">{user.username}</p><p className="text-lg font-bold text-primary font-mono">{score}</p></div>
+          <div className="flex items-center gap-3"><Timer className={`w-5 h-5 ${timerColor}`} /><span className={`text-2xl font-bold font-mono ${timerColor}`}>{timeLeft}</span></div>
+          <div className="text-center"><p className="text-xs text-muted-foreground">{opponent?.username}</p><p className="text-lg font-bold text-destructive font-mono">{opponentScore}</p></div>
         </div>
-
-        {/* Progress */}
         <div className="flex gap-1.5">
           {questions.map((_, i) => (
-            <div key={i} className={`h-1.5 flex-1 rounded-full transition-all ${
-              i < currentQ ? (answers[i] === questions[i].correctIndex ? 'bg-accent' : 'bg-destructive')
-                : i === currentQ ? 'bg-primary' : 'bg-muted'
-            }`} />
+            <div key={i} className={`h-1.5 flex-1 rounded-full transition-all ${i < currentQ ? (answers[i] === questions[i].correctIndex ? 'bg-accent' : 'bg-destructive') : i === currentQ ? 'bg-primary' : 'bg-muted'}`} />
           ))}
         </div>
-
-        {/* Question */}
         <AnimatePresence mode="wait">
-          <motion.div
-            key={currentQ}
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -30 }}
-            className="glass-card gradient-border p-8"
-          >
+          <motion.div key={currentQ} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }} className="glass-card gradient-border p-8">
             <div className="flex items-center justify-between mb-4">
               <span className="text-xs text-primary font-mono tracking-widest">{q.topic}</span>
-              <span className={`text-xs font-mono px-2 py-0.5 rounded-full ${
-                q.difficulty === 'easy' ? 'bg-accent/20 text-accent' :
-                q.difficulty === 'medium' ? 'bg-secondary/20 text-secondary' :
-                'bg-destructive/20 text-destructive'
-              }`}>
-                {q.difficulty.toUpperCase()}
-              </span>
+              <span className={`text-xs font-mono px-2 py-0.5 rounded-full ${q.difficulty === 'easy' ? 'bg-accent/20 text-accent' : q.difficulty === 'medium' ? 'bg-secondary/20 text-secondary' : 'bg-destructive/20 text-destructive'}`}>{q.difficulty.toUpperCase()}</span>
             </div>
-
             <h2 className="font-display text-lg font-bold text-foreground mb-4">{q.question}</h2>
-
-            {q.code && (
-              <pre className="bg-muted p-4 rounded-lg text-sm font-mono text-foreground mb-6 overflow-x-auto border border-border whitespace-pre-wrap">
-                {q.code}
-              </pre>
-            )}
-
+            {q.code && <pre className="bg-muted p-4 rounded-lg text-sm font-mono text-foreground mb-6 overflow-x-auto border border-border whitespace-pre-wrap">{q.code}</pre>}
             <div className="space-y-3">
               {q.options.map((opt, idx) => {
                 const isSelected = submittedAnswer === idx;
                 const isCorrect = idx === q.correctIndex;
                 const showFeedback = submittedAnswer !== null;
-
                 return (
-                  <button
-                    key={idx}
-                    onClick={() => handleAnswer(idx)}
-                    disabled={submittedAnswer !== null}
-                    className={`w-full p-4 rounded-lg border text-left transition-all flex items-center gap-3 ${
-                      showFeedback && isCorrect
-                        ? 'border-accent bg-accent/10 text-accent'
-                        : showFeedback && isSelected && !isCorrect
-                        ? 'border-destructive bg-destructive/10 text-destructive'
-                        : 'border-border bg-muted/50 text-foreground hover:border-primary/50 hover:bg-primary/5'
-                    }`}
-                  >
+                  <button key={idx} onClick={() => handleAnswer(idx)} disabled={submittedAnswer !== null}
+                    className={`w-full p-4 rounded-lg border text-left transition-all flex items-center gap-3 ${showFeedback && isCorrect ? 'border-accent bg-accent/10 text-accent' : showFeedback && isSelected && !isCorrect ? 'border-destructive bg-destructive/10 text-destructive' : 'border-border bg-muted/50 text-foreground hover:border-primary/50 hover:bg-primary/5'}`}>
                     <span className="w-8 h-8 rounded-full border border-current flex items-center justify-center text-sm font-mono shrink-0">
-                      {showFeedback && isCorrect ? <CheckCircle2 className="w-5 h-5" /> :
-                       showFeedback && isSelected ? <XCircle className="w-5 h-5" /> :
-                       String.fromCharCode(65 + idx)}
+                      {showFeedback && isCorrect ? <CheckCircle2 className="w-5 h-5" /> : showFeedback && isSelected ? <XCircle className="w-5 h-5" /> : String.fromCharCode(65 + idx)}
                     </span>
                     <span className="font-mono text-sm">{opt}</span>
                   </button>
@@ -343,79 +441,31 @@ const Battle = () => {
 
   if (phase === 'result') {
     const correct = answers.filter((a, i) => a === questions[i]?.correctIndex).length;
-    const won = eloDelta > 0;
-    const draw = eloDelta === 0;
-
+    const won = eloDelta > 0; const draw = eloDelta === 0;
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="glass-card gradient-border p-10 text-center max-w-lg w-full">
-          <div className={`w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center border-2 ${
-            won ? 'bg-accent/20 border-accent' : draw ? 'bg-muted border-border' : 'bg-destructive/20 border-destructive'
-          }`}>
+          <div className={`w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center border-2 ${won ? 'bg-accent/20 border-accent' : draw ? 'bg-muted border-border' : 'bg-destructive/20 border-destructive'}`}>
             {won ? <Trophy className="w-10 h-10 text-accent" /> : <Swords className="w-10 h-10 text-destructive" />}
           </div>
-
-          <h2 className="font-display text-3xl font-bold text-foreground mb-2">
-            {won ? 'Victory!' : draw ? 'Draw!' : 'Defeat'}
-          </h2>
-          <p className="text-muted-foreground mb-6">
-            {won ? 'Well played, champion!' : draw ? 'An evenly matched battle.' : 'Better luck next time!'}
-          </p>
-
+          <h2 className="font-display text-3xl font-bold text-foreground mb-2">{won ? 'Victory!' : draw ? 'Draw!' : 'Defeat'}</h2>
+          <p className="text-muted-foreground mb-6">{won ? 'Well played, champion!' : draw ? 'Evenly matched.' : 'Better luck next time!'}</p>
           <div className="grid grid-cols-4 gap-3 mb-6">
-            <div className="glass-card p-3 rounded-lg">
-              <p className="text-xs text-muted-foreground">Score</p>
-              <p className="text-xl font-bold text-primary font-mono">{score}</p>
-            </div>
-            <div className="glass-card p-3 rounded-lg">
-              <p className="text-xs text-muted-foreground">Correct</p>
-              <p className="text-xl font-bold text-accent font-mono">{correct}/{questions.length}</p>
-            </div>
-            <div className="glass-card p-3 rounded-lg">
-              <p className="text-xs text-muted-foreground">ELO</p>
-              <p className={`text-xl font-bold font-mono ${eloDelta > 0 ? 'text-accent' : eloDelta < 0 ? 'text-destructive' : 'text-muted-foreground'}`}>
-                {eloDelta > 0 ? '+' : ''}{eloDelta}
-              </p>
-            </div>
-            <div className="glass-card p-3 rounded-lg">
-              <p className="text-xs text-muted-foreground">CC Tokens</p>
-              <p className="text-xl font-bold text-secondary font-mono">+{tokensEarned}</p>
-            </div>
+            <div className="glass-card p-3 rounded-lg"><p className="text-xs text-muted-foreground">Score</p><p className="text-xl font-bold text-primary font-mono">{score}</p></div>
+            <div className="glass-card p-3 rounded-lg"><p className="text-xs text-muted-foreground">Correct</p><p className="text-xl font-bold text-accent font-mono">{correct}/{questions.length}</p></div>
+            <div className="glass-card p-3 rounded-lg"><p className="text-xs text-muted-foreground">ELO</p><p className={`text-xl font-bold font-mono ${eloDelta > 0 ? 'text-accent' : eloDelta < 0 ? 'text-destructive' : 'text-muted-foreground'}`}>{eloDelta > 0 ? '+' : ''}{eloDelta}</p></div>
+            <div className="glass-card p-3 rounded-lg"><p className="text-xs text-muted-foreground">CC Tokens</p><p className="text-xl font-bold text-secondary font-mono">+{tokensEarned}</p></div>
           </div>
-
-          <div className="flex items-center justify-center gap-6 mb-6 text-sm">
-            <div>
-              <p className="text-muted-foreground">You</p>
-              <p className="font-bold text-primary font-mono">{score}</p>
-            </div>
-            <span className="text-muted-foreground">vs</span>
-            <div>
-              <p className="text-muted-foreground">{opponent?.username}</p>
-              <p className="font-bold text-destructive font-mono">{opponentScore}</p>
-            </div>
-          </div>
-
           <div className="flex gap-3">
-            <button
-              onClick={resetBattle}
-              className="flex-1 py-3 bg-muted text-foreground rounded-lg font-display font-semibold hover:bg-muted/80 transition-all"
-            >
-              Back
-            </button>
-            <button
-              onClick={() => { resetBattle(); handleFindMatch(); }}
-              className="flex-1 py-3 bg-primary text-primary-foreground rounded-lg font-display font-semibold hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
-            >
-              <Zap className="w-4 h-4" />
-              Rematch
-            </button>
+            <button onClick={resetBattle} className="flex-1 py-3 bg-muted text-foreground rounded-lg font-display font-semibold hover:bg-muted/80 transition-all">Back</button>
+            <button onClick={() => { resetBattle(); handleFindMatch(); }} className="flex-1 py-3 bg-primary text-primary-foreground rounded-lg font-display font-semibold hover:bg-primary/90 transition-all flex items-center justify-center gap-2"><Zap className="w-4 h-4" />Rematch</button>
           </div>
         </motion.div>
       </div>
     );
   }
 
-  // ─── DEFAULT TABS VIEW ─────────────────────────
+  // ── DEFAULT TABS VIEW ──
   return (
     <div className="space-y-8">
       <div>
@@ -425,155 +475,241 @@ const Battle = () => {
 
       <div className="flex gap-2 overflow-x-auto pb-2">
         {tabs.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${
-              activeTab === tab.id
-                ? 'bg-primary/10 text-primary border border-primary/30'
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-            }`}
-          >
-            <tab.icon className="w-4 h-4" />
-            {tab.label}
+          <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${activeTab === tab.id ? 'bg-primary/10 text-primary border border-primary/30' : 'text-muted-foreground hover:text-foreground hover:bg-muted'}`}>
+            <tab.icon className="w-4 h-4" />{tab.label}
           </button>
         ))}
       </div>
 
       <motion.div key={activeTab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+        {/* ── FIND MATCH ── */}
         {activeTab === 'find' && (
           <div className="glass-card gradient-border p-8 text-center max-w-lg mx-auto">
             <Swords className="w-16 h-16 text-primary mx-auto mb-4" />
             <h2 className="font-display text-xl font-bold text-foreground mb-2">Quick Match</h2>
-            <p className="text-muted-foreground text-sm mb-2">
-              Find an opponent near your ELO rating
-            </p>
+            <p className="text-muted-foreground text-sm mb-2">Find an opponent near your ELO rating</p>
             <p className="text-2xl font-bold text-primary font-mono mb-6">{user.elo}</p>
-            <p className="text-xs text-muted-foreground mb-6">
-              AI will generate {difficulty || 'skill-appropriate'} questions matched to your level — fair battles, no discrimination.
-            </p>
-            <button
-              onClick={handleFindMatch}
-              className="px-8 py-3 bg-primary text-primary-foreground rounded-lg font-display font-semibold tracking-wider hover:bg-primary/90 transition-all"
-            >
-              Find Match
-            </button>
+            <button onClick={handleFindMatch} className="px-8 py-3 bg-primary text-primary-foreground rounded-lg font-display font-semibold tracking-wider hover:bg-primary/90 transition-all">Find Match</button>
           </div>
         )}
 
+        {/* ── INVITE FRIEND ── */}
         {activeTab === 'invite' && (
-          <div className="glass-card gradient-border p-8 max-w-lg mx-auto">
-            <h2 className="font-display text-xl font-bold text-foreground mb-4">Invite a Friend</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm text-muted-foreground mb-1.5 block">Friend's Code</label>
-                <input
-                  value={friendCode}
-                  onChange={e => setFriendCode(e.target.value)}
-                  placeholder="Enter friend code..."
-                  className="w-full px-4 py-3 bg-muted border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                />
-              </div>
-              <div className="glass-card p-4 rounded-lg">
-                <p className="text-sm text-muted-foreground mb-1">Your Code</p>
-                <p className="font-mono text-lg text-primary font-bold">{user.username.toUpperCase()}-{Math.random().toString(36).substr(2, 6).toUpperCase()}</p>
-              </div>
-              <button className="w-full py-3 bg-primary text-primary-foreground rounded-lg font-display font-semibold tracking-wider hover:bg-primary/90 transition-all">
-                Send Invite
-              </button>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'custom' && (
-          <div className="glass-card gradient-border p-8 max-w-lg mx-auto">
-            <h2 className="font-display text-xl font-bold text-foreground mb-4">Create Custom Room</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm text-muted-foreground mb-1.5 block">Room Name</label>
-                <input
-                  value={roomName}
-                  onChange={e => setRoomName(e.target.value)}
-                  placeholder="My Battle Room"
-                  className="w-full px-4 py-3 bg-muted border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-                />
-              </div>
-              <div>
-                <label className="text-sm text-muted-foreground mb-1.5 block">Difficulty</label>
-                <div className="flex gap-2">
-                  {['Easy', 'Medium', 'Hard'].map(d => (
-                    <button key={d} className="flex-1 py-2 rounded-lg border border-border text-sm text-muted-foreground hover:border-primary/50 hover:text-primary transition-all">
-                      {d}
-                    </button>
-                  ))}
+          <div className="max-w-lg mx-auto space-y-6">
+            <div className="glass-card gradient-border p-8">
+              <h2 className="font-display text-xl font-bold text-foreground mb-4">Invite a Friend</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm text-muted-foreground mb-1.5 block">Friend's Code</label>
+                  <input value={friendCode} onChange={e => setFriendCode(e.target.value)} placeholder="Enter friend code..."
+                    className="w-full px-4 py-3 bg-muted border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
                 </div>
+                <div className="glass-card p-4 rounded-lg">
+                  <p className="text-sm text-muted-foreground mb-1">Your Code</p>
+                  <div className="flex items-center justify-between">
+                    <p className="font-mono text-lg text-primary font-bold">{user.inviteCode}</p>
+                    <button onClick={copyInviteCode} className="p-2 text-muted-foreground hover:text-primary transition-colors"><Copy className="w-4 h-4" /></button>
+                  </div>
+                </div>
+                <button onClick={handleSendInvite} disabled={sendingInvite || !friendCode.trim()}
+                  className="w-full py-3 bg-primary text-primary-foreground rounded-lg font-display font-semibold tracking-wider hover:bg-primary/90 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                  {sendingInvite ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  Send Invite
+                </button>
               </div>
-              <button className="w-full py-3 bg-primary text-primary-foreground rounded-lg font-display font-semibold tracking-wider hover:bg-primary/90 transition-all">
-                Create Room
-              </button>
             </div>
+
+            {/* Pending invites received */}
+            {pendingInvites.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="font-display text-sm font-bold text-foreground flex items-center gap-2"><UserPlus className="w-4 h-4 text-primary" />Incoming Invites</h3>
+                {pendingInvites.map(inv => (
+                  <div key={inv.id} className="glass-card-hover p-4 flex items-center justify-between">
+                    <div>
+                      <p className="font-semibold text-foreground">{inv.sender_username}</p>
+                      <p className="text-xs text-muted-foreground">wants to battle you</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => handleAcceptInvite(inv)} className="px-3 py-1.5 bg-accent text-accent-foreground rounded-lg text-sm font-semibold hover:bg-accent/90">Accept</button>
+                      <button onClick={() => handleDeclineInvite(inv)} className="px-3 py-1.5 bg-muted text-muted-foreground rounded-lg text-sm hover:bg-destructive/20 hover:text-destructive">Decline</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
+        {/* ── CUSTOM ROOM ── */}
+        {activeTab === 'custom' && (
+          <div className="max-w-2xl mx-auto space-y-6">
+            <div className="glass-card gradient-border p-8">
+              <h2 className="font-display text-xl font-bold text-foreground mb-4">Create Custom Room</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm text-muted-foreground mb-1.5 block">Room Name</label>
+                  <input value={roomName} onChange={e => setRoomName(e.target.value)} placeholder="My Battle Room"
+                    className="w-full px-4 py-3 bg-muted border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground mb-1.5 block">Difficulty</label>
+                  <div className="flex gap-2">
+                    {(['easy', 'medium', 'hard'] as const).map(d => (
+                      <button key={d} onClick={() => setRoomDifficulty(d)}
+                        className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-all ${roomDifficulty === d ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/50 hover:text-primary'}`}>
+                        {d.charAt(0).toUpperCase() + d.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <button onClick={handleCreateRoom} disabled={creatingRoom || !roomName.trim()}
+                  className="w-full py-3 bg-primary text-primary-foreground rounded-lg font-display font-semibold tracking-wider hover:bg-primary/90 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                  {creatingRoom ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                  Create Room
+                </button>
+              </div>
+            </div>
+
+            {/* Join by code */}
+            <div className="glass-card p-5">
+              <h3 className="font-display text-sm font-bold text-foreground mb-3">Join by Room Code</h3>
+              <div className="flex gap-2">
+                <input value={joinCode} onChange={e => setJoinCode(e.target.value)} placeholder="Enter room code..."
+                  className="flex-1 px-4 py-2.5 bg-muted border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm" />
+                <button onClick={handleJoinByCode} className="px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-primary/90">Join</button>
+              </div>
+            </div>
+
+            {/* Available rooms */}
+            {rooms.length > 0 && (
+              <div className="space-y-3">
+                <h3 className="font-display text-sm font-bold text-foreground">Open Rooms</h3>
+                {rooms.filter(r => !r.is_private).map(r => (
+                  <div key={r.id} className="glass-card-hover p-5 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center"><Swords className="w-5 h-5 text-primary" /></div>
+                      <div>
+                        <h3 className="font-semibold text-foreground">{r.name}</h3>
+                        <p className="text-xs text-muted-foreground">{r.room_participants?.length || 0}/{r.max_players} players · {r.difficulty} · Code: <span className="text-primary font-mono">{r.room_code}</span></p>
+                      </div>
+                    </div>
+                    {userInRoom(r) ? (
+                      <button onClick={() => handleStartRoomBattle(r.id)} className="px-4 py-2 bg-accent text-accent-foreground rounded-lg text-sm font-semibold hover:bg-accent/90 flex items-center gap-1"><Play className="w-3 h-3" />Start</button>
+                    ) : (
+                      <button onClick={() => handleJoinRoom(r.id)} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-primary/90">Join</button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── TOURNAMENTS ── */}
         {activeTab === 'tournament' && (
-          <div className="space-y-4">
-            {mockTournaments.map(t => (
-              <div key={t.id} className="glass-card-hover p-5 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-secondary/20 flex items-center justify-center">
-                    <Trophy className="w-5 h-5 text-secondary" />
+          <div className="max-w-2xl mx-auto space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="font-display text-sm font-bold text-foreground">Active Tournaments</h3>
+              <button onClick={() => setShowCreateTournament(!showCreateTournament)}
+                className="px-4 py-2 bg-primary/10 text-primary border border-primary/30 rounded-lg text-sm font-semibold hover:bg-primary/20 flex items-center gap-1">
+                <Plus className="w-4 h-4" />{showCreateTournament ? 'Cancel' : 'Create'}
+              </button>
+            </div>
+
+            {showCreateTournament && (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="glass-card gradient-border p-6 space-y-4">
+                <input value={tournamentName} onChange={e => setTournamentName(e.target.value)} placeholder="Tournament Name"
+                  className="w-full px-4 py-3 bg-muted border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm text-muted-foreground mb-1.5 block">Max Players</label>
+                    <div className="flex gap-2">
+                      {[4, 8, 16, 32].map(n => (
+                        <button key={n} onClick={() => setTournamentMaxPlayers(n)}
+                          className={`flex-1 py-2 rounded-lg border text-sm transition-all ${tournamentMaxPlayers === n ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}>{n}</button>
+                      ))}
+                    </div>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-foreground">{t.name}</h3>
-                    <p className="text-xs text-muted-foreground">{t.players} players · {t.prize} · Starts in {t.startIn}</p>
+                    <label className="text-sm text-muted-foreground mb-1.5 block">Difficulty</label>
+                    <div className="flex gap-2">
+                      {(['easy', 'medium', 'hard'] as const).map(d => (
+                        <button key={d} onClick={() => setTournamentDifficulty(d)}
+                          className={`flex-1 py-2 rounded-lg border text-sm transition-all ${tournamentDifficulty === d ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}>
+                          {d.charAt(0).toUpperCase() + d.slice(1)}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
-                <button
-                  disabled={t.status === 'Full'}
-                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-                    t.status === 'Full'
-                      ? 'bg-muted text-muted-foreground cursor-not-allowed'
-                      : 'bg-secondary text-secondary-foreground hover:bg-secondary/90'
-                  }`}
-                >
-                  {t.status === 'Full' ? 'Full' : 'Join'}
+                <button onClick={handleCreateTournament} disabled={creatingTournament || !tournamentName.trim()}
+                  className="w-full py-3 bg-primary text-primary-foreground rounded-lg font-display font-semibold hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2">
+                  {creatingTournament ? <Loader2 className="w-4 h-4 animate-spin" /> : <Crown className="w-4 h-4" />}
+                  Create Tournament
                 </button>
+              </motion.div>
+            )}
+
+            {tournaments.length === 0 ? (
+              <div className="glass-card p-8 text-center">
+                <Trophy className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                <p className="text-muted-foreground">No active tournaments. Create one!</p>
+              </div>
+            ) : tournaments.map(t => (
+              <div key={t.id} className="glass-card-hover p-5 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-secondary/20 flex items-center justify-center"><Trophy className="w-5 h-5 text-secondary" /></div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">{t.name}</h3>
+                    <p className="text-xs text-muted-foreground">
+                      {t.current_players}/{t.max_players} players · {t.prize_xp} XP prize · {t.difficulty}
+                    </p>
+                  </div>
+                </div>
+                {userInTournament(t) ? (
+                  <span className="px-4 py-2 bg-accent/10 text-accent rounded-lg text-sm font-semibold flex items-center gap-1"><CheckCircle2 className="w-3 h-3" />Joined</span>
+                ) : (
+                  <button onClick={() => handleJoinTournament(t.id)} disabled={t.status === 'full'}
+                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${t.status === 'full' ? 'bg-muted text-muted-foreground cursor-not-allowed' : 'bg-secondary text-secondary-foreground hover:bg-secondary/90'}`}>
+                    {t.status === 'full' ? 'Full' : 'Join'}
+                  </button>
+                )}
               </div>
             ))}
           </div>
         )}
 
+        {/* ── SPECTATE ── */}
         {activeTab === 'spectate' && (
-          <div className="space-y-4">
+          <div className="max-w-2xl mx-auto space-y-4">
             <p className="text-sm text-muted-foreground">Live matches you can watch:</p>
-            {mockLiveMatches.map(m => (
+            {liveRooms.length === 0 ? (
+              <div className="glass-card p-8 text-center">
+                <Eye className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                <p className="text-muted-foreground">No live matches right now. Start a battle!</p>
+              </div>
+            ) : liveRooms.map(m => (
               <div key={m.id} className="glass-card-hover p-5">
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-3">
                     <div className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
                     <span className="text-xs font-mono text-destructive">LIVE</span>
                   </div>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Eye className="w-3 h-3" />
-                    {m.viewers}
-                  </div>
+                  <span className="text-xs text-muted-foreground font-mono">{m.difficulty}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <div className="text-center">
-                    <p className="font-semibold text-foreground">{m.p1}</p>
-                    <p className="text-xs text-primary font-mono">{m.elo1}</p>
-                  </div>
-                  <div className="px-4">
-                    <Swords className="w-6 h-6 text-secondary" />
-                  </div>
-                  <div className="text-center">
-                    <p className="font-semibold text-foreground">{m.p2}</p>
-                    <p className="text-xs text-primary font-mono">{m.elo2}</p>
-                  </div>
+                  {m.room_participants?.map((p: any, i: number) => (
+                    <div key={p.id} className="text-center">
+                      <p className="font-semibold text-foreground">{p.username}</p>
+                      <p className="text-xs text-primary font-mono">{p.elo}</p>
+                    </div>
+                  ))}
+                  {m.room_participants?.length === 2 && <div className="px-4"><Swords className="w-6 h-6 text-secondary" /></div>}
                 </div>
-                <p className="text-xs text-muted-foreground text-center mt-2">{m.topic}</p>
-                <button className="w-full mt-3 py-2 bg-muted text-foreground rounded-lg text-sm font-medium hover:bg-primary/10 hover:text-primary transition-all">
-                  Watch
+                <p className="text-xs text-muted-foreground text-center mt-2">{m.name}</p>
+                <button onClick={() => handleSpectate(m.id)} className="w-full mt-3 py-2 bg-muted text-foreground rounded-lg text-sm font-medium hover:bg-primary/10 hover:text-primary transition-all flex items-center justify-center gap-2">
+                  <Eye className="w-3 h-3" />Watch
                 </button>
               </div>
             ))}
