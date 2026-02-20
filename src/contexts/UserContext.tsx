@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { User, Session } from '@supabase/supabase-js';
 
 export interface UserProfile {
+  id: string;
   username: string;
   email: string;
   elo: number;
@@ -15,6 +16,7 @@ export interface UserProfile {
   badges: string[];
   joinedAt: string;
   assessmentCompleted: boolean;
+  inviteCode: string;
 }
 
 interface UserContextType {
@@ -39,6 +41,7 @@ export const useUser = () => {
 };
 
 const mapProfile = (row: any, email: string): UserProfile => ({
+  id: row.user_id,
   username: row.username,
   email,
   elo: row.elo,
@@ -51,6 +54,7 @@ const mapProfile = (row: any, email: string): UserProfile => ({
   badges: row.badges ?? [],
   joinedAt: row.created_at,
   assessmentCompleted: row.assessment_completed,
+  inviteCode: row.invite_code ?? '',
 });
 
 const fetchProfile = async (session: Session): Promise<UserProfile | null> => {

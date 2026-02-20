@@ -14,6 +14,83 @@ export type Database = {
   }
   public: {
     Tables: {
+      battle_invites: {
+        Row: {
+          created_at: string
+          id: string
+          receiver_code: string
+          room_id: string | null
+          sender_id: string
+          sender_username: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          receiver_code: string
+          room_id?: string | null
+          sender_id: string
+          sender_username: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          receiver_code?: string
+          room_id?: string | null
+          sender_id?: string
+          sender_username?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "battle_invites_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "battle_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      battle_rooms: {
+        Row: {
+          created_at: string
+          creator_id: string
+          difficulty: string
+          id: string
+          is_private: boolean
+          max_players: number
+          name: string
+          room_code: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          difficulty?: string
+          id?: string
+          is_private?: boolean
+          max_players?: number
+          name?: string
+          room_code?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          difficulty?: string
+          id?: string
+          is_private?: boolean
+          max_players?: number
+          name?: string
+          room_code?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           assessment_completed: boolean
@@ -21,6 +98,7 @@ export type Database = {
           created_at: string
           elo: number
           id: string
+          invite_code: string | null
           level: number
           losses: number
           streak: number
@@ -37,6 +115,7 @@ export type Database = {
           created_at?: string
           elo?: number
           id?: string
+          invite_code?: string | null
           level?: number
           losses?: number
           streak?: number
@@ -53,6 +132,7 @@ export type Database = {
           created_at?: string
           elo?: number
           id?: string
+          invite_code?: string | null
           level?: number
           losses?: number
           streak?: number
@@ -62,6 +142,115 @@ export type Database = {
           username?: string
           wins?: number
           xp?: number
+        }
+        Relationships: []
+      }
+      room_participants: {
+        Row: {
+          elo: number
+          id: string
+          joined_at: string
+          room_id: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          elo?: number
+          id?: string
+          joined_at?: string
+          room_id: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          elo?: number
+          id?: string
+          joined_at?: string
+          room_id?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "room_participants_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "battle_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tournament_participants: {
+        Row: {
+          elo: number
+          id: string
+          joined_at: string
+          tournament_id: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          elo?: number
+          id?: string
+          joined_at?: string
+          tournament_id: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          elo?: number
+          id?: string
+          joined_at?: string
+          tournament_id?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tournament_participants_tournament_id_fkey"
+            columns: ["tournament_id"]
+            isOneToOne: false
+            referencedRelation: "tournaments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tournaments: {
+        Row: {
+          created_at: string
+          creator_id: string
+          current_players: number
+          difficulty: string
+          id: string
+          max_players: number
+          name: string
+          prize_xp: number
+          starts_at: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          current_players?: number
+          difficulty?: string
+          id?: string
+          max_players?: number
+          name: string
+          prize_xp?: number
+          starts_at?: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          current_players?: number
+          difficulty?: string
+          id?: string
+          max_players?: number
+          name?: string
+          prize_xp?: number
+          starts_at?: string
+          status?: string
         }
         Relationships: []
       }
