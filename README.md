@@ -107,6 +107,8 @@ src/
 
 This project can be deployed using Vercel.
 
+## License
+This project is licensed under the MIT License.
 ```bash
 npm run build
 ```
