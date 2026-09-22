@@ -1,4 +1,8 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import {
+  applyAbandonPenalty, markPendingAbandon, clearPendingAbandon,
+  settlePendingAbandon, penaltyFor, type AbandonResult,
+} from '@/lib/abandon';
 import { useUser } from '@/contexts/UserContext';
 import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,7 +14,7 @@ import {
 import { toast } from 'sonner';
 
 type Tab = 'find' | 'invite' | 'custom' | 'tournament' | 'spectate';
-type BattlePhase = 'idle' | 'searching' | 'found' | 'battle' | 'result';
+type BattlePhase = 'idle' | 'searching' | 'found' | 'battle' | 'result' | 'abandoned';
 
 interface BattleQuestion {
   question: string;
