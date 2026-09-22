@@ -30,6 +30,8 @@ interface UserContextType {
   updateElo: (delta: number) => Promise<void>;
   updateBattleResult: (won: boolean, draw: boolean, eloDelta: number, tokensEarned: number) => Promise<void>;
   addBadge: (badge: string) => Promise<void>;
+  /** Re-reads the profile from the backend (e.g. after a server-side token change). */
+  refreshProfile: () => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | null>(null);
