@@ -176,6 +176,13 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } : prev);
   }, [user]);
 
+  const refreshProfile = useCallback(async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    const profile = await fetchProfile(session);
+    if (profile) setUser(profile);
+  }, []);
+
   const addBadge = useCallback(async (badge: string) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session || !user) return;
@@ -191,7 +198,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isAuthenticated: !!user,
       loading,
       login, signup, logout,
-      completeAssessment, updateElo, updateBattleResult, addBadge,
+      completeAssessment, updateElo, updateBattleResult, addBadge, refreshProfile,
     }}>
       {children}
     </UserContext.Provider>
