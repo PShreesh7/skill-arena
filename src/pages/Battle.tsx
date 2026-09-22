@@ -78,6 +78,73 @@ const Battle = () => {
   const [eloDelta, setEloDelta] = useState(0);
   const [tokensEarned, setTokensEarned] = useState(0);
 
+  // ── Abandonment tracking ──
+  const [sessionKey, setSessionKey] = useState<string | null>(null);
+  const [abandonInfo, setAbandonInfo] = useState<AbandonResult | null>(null);
+  const [matchType, setMatchType] = useState<'battle' | 'tournament' | 'room'>('battle');
+  const liveRef = useRef({ active: false, key: '', progress: 0, type: 'battle' as string });
+
+  const progressPercent = useCallback(() => {
+    if (!questions.length) return 0;
+    const done = answers.filter(a => a !== null).length;
+    return Math.round((done / questions.length) * 100);
+  }, [answers, questions.length]);
+
+  useEffect(() => {
+    liveRef.current = {
+      active: phase === 'battle' || phase === 'found',
+      key: sessionKey ?? '',
+      progress: progressPercent(),
+      type: matchType,
+    };
+  }, [phase, sessionKey, progressPercent, matchType]);
+
+  // Settle a match left behind by a refresh or tab close (after grace period)
+  useEffect(() => {
+    if (!user) return;
+    settlePendingAbandon().then(res => {
+      if (res && res.tokensDeducted > 0) {
+        setAbandonInfo(res);
+        setPhase('abandoned');
+        refreshProfile();
+      }
+    });
+  }, [user?.id]);
+
+  // Tab close / refresh → remember the match, settle it on return
+  useEffect(() => {
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      const s = liveRef.current;
+      if (!s.active || !s.key) return;
+      markPendingAbandon({ sessionKey: s.key, progress: s.progress, matchType: s.type });
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, []);
+
+  // Navigating away / unmount during an active match → abandon immediately
+  useEffect(() => () => {
+    const s = liveRef.current;
+    if (s.active && s.key) {
+      clearPendingAbandon();
+      applyAbandonPenalty(s.key, s.progress, s.type);
+    }
+  }, []);
+
+  const forfeitMatch = useCallback(async () => {
+    const s = liveRef.current;
+    if (!s.active || !s.key) return;
+    liveRef.current = { ...s, active: false };
+    clearPendingAbandon();
+    const res = await applyAbandonPenalty(s.key, s.progress, s.type);
+    setAbandonInfo(res ?? { tokensDeducted: penaltyFor(s.progress), remainingTokens: user?.xp ?? 0, progressPercent: s.progress });
+    setPhase('abandoned');
+    await refreshProfile();
+  }, [user?.xp]);
+
+
   // ── Load data on tab change ──
   useEffect(() => {
     if (!user) return;
