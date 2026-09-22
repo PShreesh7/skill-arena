@@ -1,4 +1,8 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import {
+  applyAbandonPenalty, markPendingAbandon, clearPendingAbandon,
+  settlePendingAbandon, penaltyFor, type AbandonResult,
+} from '@/lib/abandon';
 import { useUser } from '@/contexts/UserContext';
 import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,7 +14,7 @@ import {
 import { toast } from 'sonner';
 
 type Tab = 'find' | 'invite' | 'custom' | 'tournament' | 'spectate';
-type BattlePhase = 'idle' | 'searching' | 'found' | 'battle' | 'result';
+type BattlePhase = 'idle' | 'searching' | 'found' | 'battle' | 'result' | 'abandoned';
 
 interface BattleQuestion {
   question: string;
@@ -34,7 +38,7 @@ const tabs: { id: Tab; label: string; icon: any }[] = [
 const QUESTION_TIME_LIMIT = 30;
 
 const Battle = () => {
-  const { user, updateBattleResult } = useUser();
+  const { user, updateBattleResult, refreshProfile } = useUser();
   const [activeTab, setActiveTab] = useState<Tab>('find');
 
   // Invite tab
@@ -73,6 +77,73 @@ const Battle = () => {
   const [opponentScore, setOpponentScore] = useState(0);
   const [eloDelta, setEloDelta] = useState(0);
   const [tokensEarned, setTokensEarned] = useState(0);
+
+  // ── Abandonment tracking ──
+  const [sessionKey, setSessionKey] = useState<string | null>(null);
+  const [abandonInfo, setAbandonInfo] = useState<AbandonResult | null>(null);
+  const [matchType, setMatchType] = useState<'battle' | 'tournament' | 'room'>('battle');
+  const liveRef = useRef({ active: false, key: '', progress: 0, type: 'battle' as string });
+
+  const progressPercent = useCallback(() => {
+    if (!questions.length) return 0;
+    const done = answers.filter(a => a !== null).length;
+    return Math.round((done / questions.length) * 100);
+  }, [answers, questions.length]);
+
+  useEffect(() => {
+    liveRef.current = {
+      active: phase === 'battle' || phase === 'found',
+      key: sessionKey ?? '',
+      progress: progressPercent(),
+      type: matchType,
+    };
+  }, [phase, sessionKey, progressPercent, matchType]);
+
+  // Settle a match left behind by a refresh or tab close (after grace period)
+  useEffect(() => {
+    if (!user) return;
+    settlePendingAbandon().then(res => {
+      if (res && res.tokensDeducted > 0) {
+        setAbandonInfo(res);
+        setPhase('abandoned');
+        refreshProfile();
+      }
+    });
+  }, [user?.id]);
+
+  // Tab close / refresh → remember the match, settle it on return
+  useEffect(() => {
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      const s = liveRef.current;
+      if (!s.active || !s.key) return;
+      markPendingAbandon({ sessionKey: s.key, progress: s.progress, matchType: s.type });
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, []);
+
+  // Navigating away / unmount during an active match → abandon immediately
+  useEffect(() => () => {
+    const s = liveRef.current;
+    if (s.active && s.key) {
+      clearPendingAbandon();
+      applyAbandonPenalty(s.key, s.progress, s.type);
+    }
+  }, []);
+
+  const forfeitMatch = useCallback(async () => {
+    const s = liveRef.current;
+    if (!s.active || !s.key) return;
+    liveRef.current = { ...s, active: false };
+    clearPendingAbandon();
+    const res = await applyAbandonPenalty(s.key, s.progress, s.type);
+    setAbandonInfo(res ?? { tokensDeducted: penaltyFor(s.progress), remainingTokens: user?.xp ?? 0, progressPercent: s.progress });
+    setPhase('abandoned');
+    await refreshProfile();
+  }, [user?.xp]);
+
 
   // ── Load data on tab change ──
   useEffect(() => {
@@ -214,6 +285,9 @@ const Battle = () => {
       setOpponent(data.opponent);
       setDifficulty(data.difficulty);
       setAnswers(Array(data.questions.length).fill(null));
+      setMatchType('room');
+      setSessionKey(`room-${roomId}-${Date.now()}`);
+      setAbandonInfo(null);
       await new Promise(r => setTimeout(r, 1500));
       setPhase('found');
       setTimeout(() => {
@@ -299,6 +373,9 @@ const Battle = () => {
       if (data?.error) throw new Error(data.error);
       setQuestions(data.questions); setOpponent(data.opponent); setDifficulty(data.difficulty);
       setAnswers(Array(data.questions.length).fill(null));
+      setMatchType('battle');
+      setSessionKey(`battle-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
+      setAbandonInfo(null);
       await new Promise(r => setTimeout(r, 2000));
       setPhase('found');
       setTimeout(() => {
@@ -335,11 +412,18 @@ const Battle = () => {
     const delta = Math.round(K * ((won ? 1 : draw ? 0.5 : 0) - expectedScore));
     const baseTokens = won ? 50 : draw ? 20 : 10;
     const earnedTokens = baseTokens + Math.round((correct / questions.length) * 30) + (won && user ? Math.min(user.streak * 5, 25) : 0);
+    // Match completed normally — no abandonment penalty applies
+    liveRef.current = { ...liveRef.current, active: false };
+    clearPendingAbandon();
+    setSessionKey(null);
     setEloDelta(delta); setTokensEarned(earnedTokens); setPhase('result');
     try { await updateBattleResult(won, draw, delta, earnedTokens); } catch {}
   };
 
   const resetBattle = () => {
+    liveRef.current = { ...liveRef.current, active: false };
+    clearPendingAbandon();
+    setSessionKey(null); setAbandonInfo(null);
     setPhase('idle'); setQuestions([]); setOpponent(null); setCurrentQ(0);
     setAnswers([]); setSubmittedAnswer(null); setScore(0); setOpponentScore(0);
     setEloDelta(0); setTokensEarned(0); setTimeLeft(QUESTION_TIME_LIMIT);
@@ -404,6 +488,15 @@ const Battle = () => {
           <div className="flex items-center gap-3"><Timer className={`w-5 h-5 ${timerColor}`} /><span className={`text-2xl font-bold font-mono ${timerColor}`}>{timeLeft}</span></div>
           <div className="text-center"><p className="text-xs text-muted-foreground">{opponent?.username}</p><p className="text-lg font-bold text-destructive font-mono">{opponentScore}</p></div>
         </div>
+        <div className="flex justify-end">
+          <button
+            onClick={forfeitMatch}
+            className="text-xs font-medium text-destructive/80 hover:text-destructive border border-destructive/30 hover:border-destructive/60 rounded-lg px-3 py-1.5 transition-colors flex items-center gap-1.5"
+          >
+            <XCircle className="w-3.5 h-3.5" />
+            Leave match (-{penaltyFor(progressPercent())} CC)
+          </button>
+        </div>
         <div className="flex gap-1.5">
           {questions.map((_, i) => (
             <div key={i} className={`h-1.5 flex-1 rounded-full transition-all ${i < currentQ ? (answers[i] === questions[i].correctIndex ? 'bg-accent' : 'bg-destructive') : i === currentQ ? 'bg-primary' : 'bg-muted'}`} />
@@ -435,6 +528,30 @@ const Battle = () => {
             </div>
           </motion.div>
         </AnimatePresence>
+      </div>
+    );
+  }
+
+  if (phase === 'abandoned') {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="glass-card gradient-border p-10 text-center max-w-lg w-full">
+          <div className="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center border-2 bg-destructive/20 border-destructive">
+            <XCircle className="w-10 h-10 text-destructive" />
+          </div>
+          <h2 className="font-display text-3xl font-bold text-foreground mb-2">Match Abandoned</h2>
+          <p className="text-muted-foreground mb-6">You left before the match finished, so no rewards were given.</p>
+          <div className="grid grid-cols-3 gap-3 mb-6">
+            <div className="glass-card p-3 rounded-lg"><p className="text-xs text-muted-foreground">Progress</p><p className="text-xl font-bold text-primary font-mono">{abandonInfo?.progressPercent ?? 0}%</p></div>
+            <div className="glass-card p-3 rounded-lg"><p className="text-xs text-muted-foreground">CC Tokens</p><p className="text-xl font-bold text-destructive font-mono">-{abandonInfo?.tokensDeducted ?? 0}</p></div>
+            <div className="glass-card p-3 rounded-lg"><p className="text-xs text-muted-foreground">ELO</p><p className="text-xl font-bold text-muted-foreground font-mono">Unchanged</p></div>
+          </div>
+          <p className="text-sm text-muted-foreground mb-6">Remaining CC Tokens: <span className="font-mono text-secondary">{abandonInfo?.remainingTokens ?? user.xp}</span></p>
+          <div className="flex gap-3">
+            <button onClick={resetBattle} className="flex-1 py-3 bg-muted text-foreground rounded-lg font-display font-semibold hover:bg-muted/80 transition-all">Back</button>
+            <button onClick={() => { resetBattle(); handleFindMatch(); }} className="flex-1 py-3 bg-primary text-primary-foreground rounded-lg font-display font-semibold hover:bg-primary/90 transition-all flex items-center justify-center gap-2"><Zap className="w-4 h-4" />New Match</button>
+          </div>
+        </motion.div>
       </div>
     );
   }
