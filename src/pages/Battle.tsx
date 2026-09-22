@@ -38,7 +38,7 @@ const tabs: { id: Tab; label: string; icon: any }[] = [
 const QUESTION_TIME_LIMIT = 30;
 
 const Battle = () => {
-  const { user, updateBattleResult } = useUser();
+  const { user, updateBattleResult, refreshProfile } = useUser();
   const [activeTab, setActiveTab] = useState<Tab>('find');
 
   // Invite tab
