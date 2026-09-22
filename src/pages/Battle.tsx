@@ -532,6 +532,30 @@ const Battle = () => {
     );
   }
 
+  if (phase === 'abandoned') {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="glass-card gradient-border p-10 text-center max-w-lg w-full">
+          <div className="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center border-2 bg-destructive/20 border-destructive">
+            <XCircle className="w-10 h-10 text-destructive" />
+          </div>
+          <h2 className="font-display text-3xl font-bold text-foreground mb-2">Match Abandoned</h2>
+          <p className="text-muted-foreground mb-6">You left before the match finished, so no rewards were given.</p>
+          <div className="grid grid-cols-3 gap-3 mb-6">
+            <div className="glass-card p-3 rounded-lg"><p className="text-xs text-muted-foreground">Progress</p><p className="text-xl font-bold text-primary font-mono">{abandonInfo?.progressPercent ?? 0}%</p></div>
+            <div className="glass-card p-3 rounded-lg"><p className="text-xs text-muted-foreground">CC Tokens</p><p className="text-xl font-bold text-destructive font-mono">-{abandonInfo?.tokensDeducted ?? 0}</p></div>
+            <div className="glass-card p-3 rounded-lg"><p className="text-xs text-muted-foreground">ELO</p><p className="text-xl font-bold text-muted-foreground font-mono">Unchanged</p></div>
+          </div>
+          <p className="text-sm text-muted-foreground mb-6">Remaining CC Tokens: <span className="font-mono text-secondary">{abandonInfo?.remainingTokens ?? user.xp}</span></p>
+          <div className="flex gap-3">
+            <button onClick={resetBattle} className="flex-1 py-3 bg-muted text-foreground rounded-lg font-display font-semibold hover:bg-muted/80 transition-all">Back</button>
+            <button onClick={() => { resetBattle(); handleFindMatch(); }} className="flex-1 py-3 bg-primary text-primary-foreground rounded-lg font-display font-semibold hover:bg-primary/90 transition-all flex items-center justify-center gap-2"><Zap className="w-4 h-4" />New Match</button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
   if (phase === 'result') {
     const correct = answers.filter((a, i) => a === questions[i]?.correctIndex).length;
     const won = eloDelta > 0; const draw = eloDelta === 0;
