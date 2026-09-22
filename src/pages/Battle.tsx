@@ -285,6 +285,9 @@ const Battle = () => {
       setOpponent(data.opponent);
       setDifficulty(data.difficulty);
       setAnswers(Array(data.questions.length).fill(null));
+      setMatchType('room');
+      setSessionKey(`room-${roomId}-${Date.now()}`);
+      setAbandonInfo(null);
       await new Promise(r => setTimeout(r, 1500));
       setPhase('found');
       setTimeout(() => {
@@ -370,6 +373,9 @@ const Battle = () => {
       if (data?.error) throw new Error(data.error);
       setQuestions(data.questions); setOpponent(data.opponent); setDifficulty(data.difficulty);
       setAnswers(Array(data.questions.length).fill(null));
+      setMatchType('battle');
+      setSessionKey(`battle-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
+      setAbandonInfo(null);
       await new Promise(r => setTimeout(r, 2000));
       setPhase('found');
       setTimeout(() => {
