@@ -412,11 +412,18 @@ const Battle = () => {
     const delta = Math.round(K * ((won ? 1 : draw ? 0.5 : 0) - expectedScore));
     const baseTokens = won ? 50 : draw ? 20 : 10;
     const earnedTokens = baseTokens + Math.round((correct / questions.length) * 30) + (won && user ? Math.min(user.streak * 5, 25) : 0);
+    // Match completed normally — no abandonment penalty applies
+    liveRef.current = { ...liveRef.current, active: false };
+    clearPendingAbandon();
+    setSessionKey(null);
     setEloDelta(delta); setTokensEarned(earnedTokens); setPhase('result');
     try { await updateBattleResult(won, draw, delta, earnedTokens); } catch {}
   };
 
   const resetBattle = () => {
+    liveRef.current = { ...liveRef.current, active: false };
+    clearPendingAbandon();
+    setSessionKey(null); setAbandonInfo(null);
     setPhase('idle'); setQuestions([]); setOpponent(null); setCurrentQ(0);
     setAnswers([]); setSubmittedAnswer(null); setScore(0); setOpponentScore(0);
     setEloDelta(0); setTokensEarned(0); setTimeLeft(QUESTION_TIME_LIMIT);
@@ -480,6 +487,15 @@ const Battle = () => {
           <div className="text-center"><p className="text-xs text-muted-foreground">{user.username}</p><p className="text-lg font-bold text-primary font-mono">{score}</p></div>
           <div className="flex items-center gap-3"><Timer className={`w-5 h-5 ${timerColor}`} /><span className={`text-2xl font-bold font-mono ${timerColor}`}>{timeLeft}</span></div>
           <div className="text-center"><p className="text-xs text-muted-foreground">{opponent?.username}</p><p className="text-lg font-bold text-destructive font-mono">{opponentScore}</p></div>
+        </div>
+        <div className="flex justify-end">
+          <button
+            onClick={forfeitMatch}
+            className="text-xs font-medium text-destructive/80 hover:text-destructive border border-destructive/30 hover:border-destructive/60 rounded-lg px-3 py-1.5 transition-colors flex items-center gap-1.5"
+          >
+            <XCircle className="w-3.5 h-3.5" />
+            Leave match (-{penaltyFor(progressPercent())} CC)
+          </button>
         </div>
         <div className="flex gap-1.5">
           {questions.map((_, i) => (
