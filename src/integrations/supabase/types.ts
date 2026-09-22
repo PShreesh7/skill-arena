@@ -91,6 +91,39 @@ export type Database = {
         }
         Relationships: []
       }
+      match_abandonments: {
+        Row: {
+          created_at: string
+          id: string
+          match_type: string
+          progress_percent: number
+          reason: string
+          session_key: string
+          tokens_deducted: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          match_type?: string
+          progress_percent?: number
+          reason?: string
+          session_key: string
+          tokens_deducted?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          match_type?: string
+          progress_percent?: number
+          reason?: string
+          session_key?: string
+          tokens_deducted?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           assessment_completed: boolean
@@ -259,7 +292,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      apply_abandon_penalty: {
+        Args: {
+          p_match_type?: string
+          p_progress: number
+          p_session_key: string
+        }
+        Returns: {
+          progress_percent: number
+          remaining_tokens: number
+          tokens_deducted: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
