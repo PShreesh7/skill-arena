@@ -2,55 +2,54 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
-
 @layer base {
   :root {
-    --background: 222 47% 6%;
-    --foreground: 210 40% 92%;
+    --background: 220 33% 4%;
+    --foreground: 210 29% 92%;
 
-    --card: 222 41% 10%;
+    --card: 218 42% 9%;
     --card-foreground: 210 40% 92%;
 
-    --popover: 222 41% 10%;
+    --popover: 218 42% 9%;
     --popover-foreground: 210 40% 92%;
 
-    --primary: 187 100% 50%;
-    --primary-foreground: 222 47% 6%;
+    --primary: 184 100% 50%;
+    --primary-foreground: 220 33% 4%;
 
-    --secondary: 32 95% 55%;
-    --secondary-foreground: 222 47% 6%;
+    --secondary: 43 100% 50%;
+    --secondary-foreground: 220 33% 4%;
 
-    --muted: 222 30% 16%;
-    --muted-foreground: 215 20% 55%;
+    --muted: 217 31% 13%;
+    --muted-foreground: 215 18% 58%;
 
-    --accent: 160 84% 45%;
-    --accent-foreground: 222 47% 6%;
+    --accent: 152 100% 50%;
+    --accent-foreground: 220 33% 4%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 344 100% 59%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 222 30% 18%;
-    --input: 222 30% 16%;
-    --ring: 187 100% 50%;
+    --border: 190 43% 20%;
+    --input: 217 31% 13%;
+    --ring: 184 100% 50%;
 
-    --radius: 0.75rem;
+    --radius: 0.35rem;
 
-    --sidebar-background: 222 47% 8%;
+    --sidebar-background: 220 38% 5%;
     --sidebar-foreground: 210 40% 85%;
-    --sidebar-primary: 187 100% 50%;
+    --sidebar-primary: 184 100% 50%;
     --sidebar-primary-foreground: 222 47% 6%;
-    --sidebar-accent: 222 30% 14%;
+    --sidebar-accent: 217 31% 12%;
     --sidebar-accent-foreground: 210 40% 92%;
-    --sidebar-border: 222 30% 15%;
-    --sidebar-ring: 187 100% 50%;
+    --sidebar-border: 190 43% 18%;
+    --sidebar-ring: 184 100% 50%;
 
     /* Custom tokens */
-    --glow-primary: 187 100% 50%;
-    --glow-secondary: 32 95% 55%;
-    --glow-accent: 160 84% 45%;
-    --glow-purple: 270 80% 60%;
-    --surface-glass: 222 41% 10%;
+    --glow-primary: 184 100% 50%;
+    --glow-secondary: 43 100% 50%;
+    --glow-accent: 152 100% 50%;
+    --glow-purple: 277 100% 50%;
+    --surface-glass: 218 42% 9%;
+    --void-deep: 220 36% 6%;
   }
 }
 
@@ -61,11 +60,19 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', sans-serif;
+    font-family: 'JetBrains Mono', monospace;
+    background-image:
+      radial-gradient(circle at 78% 10%, hsl(var(--glow-purple) / 0.08), transparent 30rem),
+      radial-gradient(circle at 10% 80%, hsl(var(--primary) / 0.06), transparent 35rem),
+      radial-gradient(hsl(var(--primary) / 0.13) 0.7px, transparent 0.7px);
+    background-size: auto, auto, 18px 18px;
+    min-width: 320px;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Orbitron', sans-serif;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
   }
 
   code, pre {
@@ -75,16 +82,18 @@
 
 @layer utilities {
   .glass-card {
-    @apply bg-card/60 backdrop-blur-xl border border-border/50 rounded-xl;
-    box-shadow: 0 0 30px -10px hsl(var(--glow-primary) / 0.1);
+    @apply bg-card/75 backdrop-blur-xl border border-primary/20 rounded-sm;
+    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+    box-shadow: inset 0 0 30px hsl(var(--glow-primary) / 0.025), 0 18px 50px hsl(var(--background) / 0.5);
   }
 
   .glass-card-hover {
     @apply glass-card transition-all duration-300;
   }
   .glass-card-hover:hover {
-    box-shadow: 0 0 40px -10px hsl(var(--glow-primary) / 0.25);
-    border-color: hsl(var(--primary) / 0.3);
+    box-shadow: inset 0 0 28px hsl(var(--glow-primary) / 0.08), 0 0 25px hsl(var(--glow-primary) / 0.08);
+    border-color: hsl(var(--primary) / 0.45);
+    transform: translateY(-2px);
   }
 
   .glow-text {
@@ -117,7 +126,9 @@
   }
 
   .font-display {
-    font-family: 'Orbitron', sans-serif;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
   }
 
   .font-mono {
@@ -129,5 +140,55 @@
     background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--accent)));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+  }
+
+  .cyber-panel {
+    @apply glass-card relative overflow-hidden;
+  }
+
+  .cyber-panel::after {
+    content: '';
+    @apply pointer-events-none absolute inset-x-0 top-0 h-px;
+    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.8), transparent);
+  }
+
+  .telemetry-label {
+    @apply text-[10px] uppercase text-muted-foreground;
+    letter-spacing: 0.12em;
+  }
+
+  .command-button {
+    @apply inline-flex items-center justify-center gap-2 rounded-sm border border-primary/60 bg-primary/10 px-5 py-3 font-mono text-xs font-bold uppercase text-primary transition-all duration-200;
+    letter-spacing: 0.08em;
+    box-shadow: inset 0 0 14px hsl(var(--primary) / 0.08);
+  }
+
+  .command-button:hover {
+    @apply bg-primary text-primary-foreground;
+    box-shadow: 0 0 24px hsl(var(--primary) / 0.25);
+  }
+
+  .command-button:active { transform: translateY(1px) scale(0.99); }
+  .command-button:disabled { @apply cursor-not-allowed opacity-40; }
+
+  .editor-shell {
+    @apply overflow-hidden rounded-sm border border-primary/25 bg-background/90;
+    box-shadow: inset 0 0 36px hsl(var(--background) / 0.65);
+  }
+
+  .scanline {
+    background: linear-gradient(to bottom, transparent 50%, hsl(var(--primary) / 0.018) 50%);
+    background-size: 100% 4px;
+  }
+
+  @keyframes telemetry-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  .telemetry-scroll { animation: telemetry-scroll 24s linear infinite; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
   }
 }
