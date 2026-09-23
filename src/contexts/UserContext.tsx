@@ -65,8 +65,19 @@ const fetchProfile = async (session: Session): Promise<UserProfile | null> => {
     .select('*')
     .eq('user_id', session.user.id)
     .maybeSingle();
-  if (error || !data) return null;
-  return mapProfile(data, session.user.email ?? '');
+  if (error) return null;
+  if (data) return mapProfile(data, session.user.email ?? '');
+
+  // Self-heal: create the profile if it is missing for any reason
+  const fallbackName =
+    (session.user.user_metadata as any)?.username ||
+    (session.user.email ?? 'player').split('@')[0];
+  const { data: created } = await supabase
+    .from('profiles')
+    .insert({ user_id: session.user.id, username: fallbackName })
+    .select()
+    .maybeSingle();
+  return created ? mapProfile(created, session.user.email ?? '') : null;
 };
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
