@@ -2,7 +2,7 @@ import { useUser } from '@/contexts/UserContext';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import StatCard from '@/components/StatCard';
-import { Trophy, Swords, BookOpen, TrendingUp, Target, Flame, Bot, Coins, ArrowRight } from 'lucide-react';
+import { Trophy, Swords, BookOpen, TrendingUp, Target, Flame, Bot, Coins, ArrowRight, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 
@@ -39,9 +39,9 @@ const modeCards = [
     desc: 'Spend CC Tokens to unlock courses & expert content',
     icon: Coins,
     path: '/token-shop',
-    color: 'border-purple-500/30 hover:border-purple-500',
-    glow: 'shadow-[0_0_20px_-10px_rgba(168,85,247,0.3)]',
-    iconColor: 'text-purple-500'
+    color: 'border-glow-purple/30 hover:border-glow-purple',
+    glow: 'shadow-[0_0_20px_-10px_hsl(var(--glow-purple)/0.3)]',
+    iconColor: 'text-glow-purple'
   },
 ];
 
@@ -58,7 +58,7 @@ const Dashboard = () => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tighter">
+             <h1 className="text-3xl md:text-4xl font-extrabold">
               READY FOR <span className="text-primary glow-text">EVOLUTION</span>?
             </h1>
             <p className="text-muted-foreground mt-2 text-lg font-medium">
@@ -95,7 +95,7 @@ const Dashboard = () => {
           <div className="h-px flex-1 bg-gradient-to-l from-transparent to-border/50" />
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {modeCards.map((card, i) => (
             <motion.div
               key={card.title}
@@ -105,13 +105,13 @@ const Dashboard = () => {
               whileHover={{ scale: 1.01, translateY: -4 }}
             >
               <Link to={card.path} className="block group">
-                <Card className={`h-full border-2 transition-all duration-500 ${card.color} ${card.glow}`}>
+                 <Card className={`h-full border transition-all duration-500 ${card.color} ${card.glow}`}>
                   <CardHeader>
                     <div className="flex items-center gap-5">
-                      <div className="w-16 h-16 rounded-2xl bg-black/40 flex items-center justify-center border border-white/5 group-hover:border-white/20 transition-colors shadow-2xl">
+                       <div className="w-14 h-14 shrink-0 rounded-sm bg-background/80 flex items-center justify-center border border-border group-hover:border-primary/40 transition-colors">
                         <card.icon className={`w-8 h-8 ${card.iconColor} group-hover:scale-110 transition-transform duration-500`} />
                       </div>
-                      <div className="flex-1">
+                       <div className="min-w-0 flex-1">
                         <CardTitle className="text-xl mb-1 group-hover:text-primary transition-colors">{card.title}</CardTitle>
                         <CardDescription className="text-sm leading-relaxed">{card.desc}</CardDescription>
                       </div>
