@@ -76,21 +76,21 @@ const TokenShop = () => {
           <Zap className="w-5 h-5 text-secondary" />
           Expert Content
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {expertItems.map((item, i) => (
             <motion.div
               key={item.id}
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className={`p-5 rounded-xl border transition-all ${
+              className={`p-5 rounded-sm border transition-all ${
                 isUnlocked(item.id)
                   ? 'border-accent/40 bg-accent/5'
                   : 'border-border/50 bg-card/40 hover:border-primary/30'
               }`}
             >
               <div className="flex items-start justify-between mb-3">
-                <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center border border-secondary/20">
+                <div className="w-12 h-12 rounded-sm bg-secondary/10 flex items-center justify-center border border-secondary/20">
                   <item.icon className="w-6 h-6 text-secondary" />
                 </div>
                 {isUnlocked(item.id) ? (
@@ -108,7 +108,7 @@ const TokenShop = () => {
               {!isUnlocked(item.id) && (
                 <button
                   onClick={() => handleUnlock(item)}
-                  className="mt-4 w-full py-2 rounded-lg text-sm font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors flex items-center justify-center gap-2"
+                  className="mt-4 w-full py-2 rounded-sm text-sm font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors flex items-center justify-center gap-2"
                 >
                   <Lock className="w-3.5 h-3.5" />
                   Unlock for {item.cost} CC
@@ -125,21 +125,21 @@ const TokenShop = () => {
           <BookOpen className="w-5 h-5 text-primary" />
           Premium Courses
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {courseItems.map((item, i) => (
             <motion.div
               key={item.id}
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
-              className={`p-5 rounded-xl border transition-all ${
+              className={`p-5 rounded-sm border transition-all ${
                 isUnlocked(item.id)
                   ? 'border-accent/40 bg-accent/5'
                   : 'border-border/50 bg-card/40 hover:border-primary/30'
               }`}
             >
               <div className="flex items-start justify-between mb-3">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                <div className="w-12 h-12 rounded-sm bg-primary/10 flex items-center justify-center border border-primary/20">
                   <item.icon className="w-6 h-6 text-primary" />
                 </div>
                 {isUnlocked(item.id) ? (
@@ -157,7 +157,7 @@ const TokenShop = () => {
               {!isUnlocked(item.id) && (
                 <button
                   onClick={() => handleUnlock(item)}
-                  className="mt-4 w-full py-2 rounded-lg text-sm font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors flex items-center justify-center gap-2"
+                  className="mt-4 w-full py-2 rounded-sm text-sm font-medium bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 transition-colors flex items-center justify-center gap-2"
                 >
                   <Lock className="w-3.5 h-3.5" />
                   Unlock for {item.cost} CC

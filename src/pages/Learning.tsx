@@ -141,7 +141,7 @@ const Learning = () => {
         className="glass-card gradient-border p-6"
       >
         <div className="flex items-start gap-4">
-          <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-sm bg-primary/20 flex items-center justify-center shrink-0">
             <Lightbulb className="w-5 h-5 text-primary" />
           </div>
           <div>
@@ -154,7 +154,7 @@ const Learning = () => {
                 <button
                   key={t.id}
                   onClick={() => setSelectedTopic(t)}
-                  className="px-3 py-1.5 rounded-lg bg-primary/10 border border-primary/30 text-primary text-sm font-medium hover:bg-primary/20 transition-colors"
+                  className="px-3 py-1.5 rounded-sm bg-primary/10 border border-primary/30 text-primary text-sm font-medium hover:bg-primary/20 transition-colors"
                 >
                   {t.name}
                 </button>
@@ -206,7 +206,7 @@ const Learning = () => {
               transition={{ delay: i * 0.05 }}
               onClick={() => t.status !== 'locked' && setSelectedTopic(t)}
               disabled={t.status === 'locked'}
-              className={`p-4 rounded-xl border text-left transition-all ${statusStyles[t.status]} ${
+              className={`p-4 rounded-sm border text-left transition-all ${statusStyles[t.status]} ${
                 t.status !== 'locked' ? 'hover:scale-[1.02] cursor-pointer' : 'cursor-not-allowed'
               }`}
             >
@@ -268,14 +268,14 @@ const Learning = () => {
                 <div className="flex gap-3">
                   <button
                     onClick={() => startPractice(selectedTopic)}
-                    className="flex-1 py-3 bg-primary text-primary-foreground rounded-lg font-display font-semibold text-sm tracking-wider hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
+                    className="flex-1 py-3 bg-primary text-primary-foreground rounded-sm font-display font-semibold text-sm tracking-wider hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
                   >
                     {selectedTopic.mastery === 0 ? 'Start Learning' : 'Practice Now'}
                     <ArrowRight className="w-4 h-4" />
                   </button>
                   <button
                     onClick={closePractice}
-                    className="px-4 py-3 bg-muted text-muted-foreground rounded-lg text-sm hover:text-foreground transition-colors"
+                    className="px-4 py-3 bg-muted text-muted-foreground rounded-sm text-sm hover:text-foreground transition-colors"
                   >
                     Close
                   </button>
@@ -309,7 +309,7 @@ const Learning = () => {
                     </h3>
 
                     {practiceQuestions[currentQ].code && (
-                      <pre className="bg-muted p-3 rounded-lg text-sm font-mono text-foreground mb-4 overflow-x-auto border border-border whitespace-pre-wrap">
+                      <pre className="bg-muted p-3 rounded-sm text-sm font-mono text-foreground mb-4 overflow-x-auto border border-border whitespace-pre-wrap">
                         {practiceQuestions[currentQ].code}
                       </pre>
                     )}
@@ -325,7 +325,7 @@ const Learning = () => {
                             key={idx}
                             onClick={() => handlePracticeAnswer(idx)}
                             disabled={selectedAnswer !== null}
-                            className={`w-full p-3 rounded-lg border text-left transition-all flex items-center gap-3 text-sm ${
+                            className={`w-full p-3 rounded-sm border text-left transition-all flex items-center gap-3 text-sm ${
                               showFeedback && isCorrect
                                 ? 'border-accent bg-accent/10 text-accent'
                                 : showFeedback && isSelected && !isCorrect
@@ -365,13 +365,13 @@ const Learning = () => {
                 <div className="flex gap-3">
                   <button
                     onClick={() => startPractice(selectedTopic)}
-                    className="flex-1 py-3 bg-primary text-primary-foreground rounded-lg font-display font-semibold text-sm hover:bg-primary/90 transition-all"
+                    className="flex-1 py-3 bg-primary text-primary-foreground rounded-sm font-display font-semibold text-sm hover:bg-primary/90 transition-all"
                   >
                     Practice Again
                   </button>
                   <button
                     onClick={closePractice}
-                    className="px-4 py-3 bg-muted text-muted-foreground rounded-lg text-sm hover:text-foreground transition-colors"
+                    className="px-4 py-3 bg-muted text-muted-foreground rounded-sm text-sm hover:text-foreground transition-colors"
                   >
                     Done
                   </button>

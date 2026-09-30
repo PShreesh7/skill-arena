@@ -56,9 +56,9 @@ const MatchHistory = () => (
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.05 }}
-          className="glass-card-hover p-5 flex items-center gap-4 cursor-pointer"
+          className="glass-card-hover p-5 flex items-center gap-4 "
         >
-          <div className={`w-10 h-10 rounded-lg flex items-center justify-center border ${resultStyles[m.result]}`}>
+          <div className={`w-10 h-10 rounded-sm flex items-center justify-center border ${resultStyles[m.result]}`}>
             {m.result === 'win' ? <Trophy className="w-5 h-5" /> : <Swords className="w-5 h-5" />}
           </div>
 
@@ -88,7 +88,7 @@ const MatchHistory = () => (
             </p>
           </div>
 
-          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+          <span className="text-[10px] text-muted-foreground">{m.date}</span>
         </motion.div>
       ))}
     </div>
