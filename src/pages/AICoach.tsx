@@ -136,9 +136,9 @@ const AICoach = () => {
         onDelta: upsert,
         onDone: () => setChatLoading(false),
       });
-    } catch (e: any) {
+    } catch (e: unknown) {
       setChatLoading(false);
-      toast({ title: 'Communication Error', description: e.message, variant: 'destructive' });
+      toast({ title: 'Communication Error', description: e instanceof Error ? e.message : 'Please try again.', variant: 'destructive' });
     }
   };
 
@@ -158,9 +158,9 @@ const AICoach = () => {
         },
         onDone: () => setAnalyzing(false),
       });
-    } catch (e: any) {
+    } catch (e: unknown) {
       setAnalyzing(false);
-      toast({ title: 'Analysis Failed', description: e.message, variant: 'destructive' });
+      toast({ title: 'Analysis Failed', description: e instanceof Error ? e.message : 'Please try again.', variant: 'destructive' });
     }
   };
 
@@ -210,7 +210,7 @@ const AICoach = () => {
         </TabsContent>
 
         <TabsContent value="code" className="mt-0 space-y-6">
-          <div className="editor-shell">
+          <div className={`editor-shell ${hasBottleneck ? 'border-destructive/80 animate-pulse' : ''}`}>
             <div className="flex items-center gap-2 border-b border-primary/20 bg-card px-4 py-3 text-xs text-muted-foreground"><FileCode2 className="size-4 text-primary" /><span className="text-foreground">source_input</span><span className="ml-auto text-[10px] uppercase">TS · JS · PY · CPP · JAVA · GO</span></div>
             <div className="relative overflow-auto bg-background/90">
               <div className="pointer-events-none flex min-h-[300px] min-w-[480px] font-mono text-sm leading-6" aria-hidden="true">
