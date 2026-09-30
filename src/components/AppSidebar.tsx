@@ -17,6 +17,7 @@ import {
   SidebarGroupContent,
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -82,7 +83,7 @@ const AppSidebar = () => {
                         "h-11 px-4 rounded-sm border border-transparent font-mono text-xs uppercase tracking-wider transition-all duration-300",
                         active 
                           ? "bg-primary/10 text-primary border-primary/40 font-bold shadow-[inset_0_0_14px_hsl(var(--primary)/0.1),0_0_16px_hsl(var(--primary)/0.08)]" 
-                          : "text-muted-foreground hover:text-foreground hover:bg-white/5 hover:translate-x-1"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted/50 hover:translate-x-1"
                       )}
                     >
                       <Link to={item.path} className="flex items-center w-full">
@@ -100,13 +101,13 @@ const AppSidebar = () => {
       </SidebarContent>
 
       <SidebarFooter className="p-4 border-t border-border bg-background/50">
-        <button
+        <Button variant="ghost"
           onClick={logout}
           className="flex w-full items-center gap-3 rounded-sm border border-transparent px-4 py-3 text-xs font-bold uppercase tracking-wider text-muted-foreground transition-all hover:border-destructive/30 hover:bg-destructive/10 hover:text-destructive group"
         >
           <LogOut className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
           <span>[ Terminate Session ]</span>
-        </button>
+        </Button>
       </SidebarFooter>
     </Sidebar>
   );

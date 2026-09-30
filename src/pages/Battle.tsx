@@ -491,7 +491,7 @@ const Battle = () => {
         <div className="flex justify-end">
           <button
             onClick={forfeitMatch}
-            className="text-xs font-medium text-destructive/80 hover:text-destructive border border-destructive/30 hover:border-destructive/60 rounded-lg px-3 py-1.5 transition-colors flex items-center gap-1.5"
+            className="text-xs font-medium text-destructive/80 hover:text-destructive border border-destructive/30 hover:border-destructive/60 rounded-sm px-3 py-1.5 transition-colors flex items-center gap-1.5"
           >
             <XCircle className="w-3.5 h-3.5" />
             Leave match (-{penaltyFor(progressPercent())} CC)
@@ -509,7 +509,7 @@ const Battle = () => {
               <span className={`text-xs font-mono px-2 py-0.5 rounded-full ${q.difficulty === 'easy' ? 'bg-accent/20 text-accent' : q.difficulty === 'medium' ? 'bg-secondary/20 text-secondary' : 'bg-destructive/20 text-destructive'}`}>{q.difficulty.toUpperCase()}</span>
             </div>
             <h2 className="font-display text-lg font-bold text-foreground mb-4">{q.question}</h2>
-            {q.code && <pre className="bg-muted p-4 rounded-lg text-sm font-mono text-foreground mb-6 overflow-x-auto border border-border whitespace-pre-wrap">{q.code}</pre>}
+            {q.code && <pre className="bg-muted p-4 rounded-sm text-sm font-mono text-foreground mb-6 overflow-x-auto border border-border whitespace-pre-wrap">{q.code}</pre>}
             <div className="space-y-3">
               {q.options.map((opt, idx) => {
                 const isSelected = submittedAnswer === idx;
@@ -517,7 +517,7 @@ const Battle = () => {
                 const showFeedback = submittedAnswer !== null;
                 return (
                   <button key={idx} onClick={() => handleAnswer(idx)} disabled={submittedAnswer !== null}
-                    className={`w-full p-4 rounded-lg border text-left transition-all flex items-center gap-3 ${showFeedback && isCorrect ? 'border-accent bg-accent/10 text-accent' : showFeedback && isSelected && !isCorrect ? 'border-destructive bg-destructive/10 text-destructive' : 'border-border bg-muted/50 text-foreground hover:border-primary/50 hover:bg-primary/5'}`}>
+                    className={`w-full p-4 rounded-sm border text-left transition-all flex items-center gap-3 ${showFeedback && isCorrect ? 'border-accent bg-accent/10 text-accent' : showFeedback && isSelected && !isCorrect ? 'border-destructive bg-destructive/10 text-destructive' : 'border-border bg-muted/50 text-foreground hover:border-primary/50 hover:bg-primary/5'}`}>
                     <span className="w-8 h-8 rounded-full border border-current flex items-center justify-center text-sm font-mono shrink-0">
                       {showFeedback && isCorrect ? <CheckCircle2 className="w-5 h-5" /> : showFeedback && isSelected ? <XCircle className="w-5 h-5" /> : String.fromCharCode(65 + idx)}
                     </span>
@@ -542,14 +542,14 @@ const Battle = () => {
           <h2 className="font-display text-3xl font-bold text-foreground mb-2">Match Abandoned</h2>
           <p className="text-muted-foreground mb-6">You left before the match finished, so no rewards were given.</p>
           <div className="grid grid-cols-3 gap-3 mb-6">
-            <div className="glass-card p-3 rounded-lg"><p className="text-xs text-muted-foreground">Progress</p><p className="text-xl font-bold text-primary font-mono">{abandonInfo?.progressPercent ?? 0}%</p></div>
-            <div className="glass-card p-3 rounded-lg"><p className="text-xs text-muted-foreground">CC Tokens</p><p className="text-xl font-bold text-destructive font-mono">-{abandonInfo?.tokensDeducted ?? 0}</p></div>
-            <div className="glass-card p-3 rounded-lg"><p className="text-xs text-muted-foreground">ELO</p><p className="text-xl font-bold text-muted-foreground font-mono">Unchanged</p></div>
+            <div className="glass-card p-3 rounded-sm"><p className="text-xs text-muted-foreground">Progress</p><p className="text-xl font-bold text-primary font-mono">{abandonInfo?.progressPercent ?? 0}%</p></div>
+            <div className="glass-card p-3 rounded-sm"><p className="text-xs text-muted-foreground">CC Tokens</p><p className="text-xl font-bold text-destructive font-mono">-{abandonInfo?.tokensDeducted ?? 0}</p></div>
+            <div className="glass-card p-3 rounded-sm"><p className="text-xs text-muted-foreground">ELO</p><p className="text-xl font-bold text-muted-foreground font-mono">Unchanged</p></div>
           </div>
           <p className="text-sm text-muted-foreground mb-6">Remaining CC Tokens: <span className="font-mono text-secondary">{abandonInfo?.remainingTokens ?? user.xp}</span></p>
           <div className="flex gap-3">
-            <button onClick={resetBattle} className="flex-1 py-3 bg-muted text-foreground rounded-lg font-display font-semibold hover:bg-muted/80 transition-all">Back</button>
-            <button onClick={() => { resetBattle(); handleFindMatch(); }} className="flex-1 py-3 bg-primary text-primary-foreground rounded-lg font-display font-semibold hover:bg-primary/90 transition-all flex items-center justify-center gap-2"><Zap className="w-4 h-4" />New Match</button>
+            <button onClick={resetBattle} className="flex-1 py-3 bg-muted text-foreground rounded-sm font-display font-semibold hover:bg-muted/80 transition-all">Back</button>
+            <button onClick={() => { resetBattle(); handleFindMatch(); }} className="flex-1 py-3 bg-primary text-primary-foreground rounded-sm font-display font-semibold hover:bg-primary/90 transition-all flex items-center justify-center gap-2"><Zap className="w-4 h-4" />New Match</button>
           </div>
         </motion.div>
       </div>
@@ -568,14 +568,14 @@ const Battle = () => {
           <h2 className="font-display text-3xl font-bold text-foreground mb-2">{won ? 'Victory!' : draw ? 'Draw!' : 'Defeat'}</h2>
           <p className="text-muted-foreground mb-6">{won ? 'Well played, champion!' : draw ? 'Evenly matched.' : 'Better luck next time!'}</p>
           <div className="grid grid-cols-4 gap-3 mb-6">
-            <div className="glass-card p-3 rounded-lg"><p className="text-xs text-muted-foreground">Score</p><p className="text-xl font-bold text-primary font-mono">{score}</p></div>
-            <div className="glass-card p-3 rounded-lg"><p className="text-xs text-muted-foreground">Correct</p><p className="text-xl font-bold text-accent font-mono">{correct}/{questions.length}</p></div>
-            <div className="glass-card p-3 rounded-lg"><p className="text-xs text-muted-foreground">ELO</p><p className={`text-xl font-bold font-mono ${eloDelta > 0 ? 'text-accent' : eloDelta < 0 ? 'text-destructive' : 'text-muted-foreground'}`}>{eloDelta > 0 ? '+' : ''}{eloDelta}</p></div>
-            <div className="glass-card p-3 rounded-lg"><p className="text-xs text-muted-foreground">CC Tokens</p><p className="text-xl font-bold text-secondary font-mono">+{tokensEarned}</p></div>
+            <div className="glass-card p-3 rounded-sm"><p className="text-xs text-muted-foreground">Score</p><p className="text-xl font-bold text-primary font-mono">{score}</p></div>
+            <div className="glass-card p-3 rounded-sm"><p className="text-xs text-muted-foreground">Correct</p><p className="text-xl font-bold text-accent font-mono">{correct}/{questions.length}</p></div>
+            <div className="glass-card p-3 rounded-sm"><p className="text-xs text-muted-foreground">ELO</p><p className={`text-xl font-bold font-mono ${eloDelta > 0 ? 'text-accent' : eloDelta < 0 ? 'text-destructive' : 'text-muted-foreground'}`}>{eloDelta > 0 ? '+' : ''}{eloDelta}</p></div>
+            <div className="glass-card p-3 rounded-sm"><p className="text-xs text-muted-foreground">CC Tokens</p><p className="text-xl font-bold text-secondary font-mono">+{tokensEarned}</p></div>
           </div>
           <div className="flex gap-3">
-            <button onClick={resetBattle} className="flex-1 py-3 bg-muted text-foreground rounded-lg font-display font-semibold hover:bg-muted/80 transition-all">Back</button>
-            <button onClick={() => { resetBattle(); handleFindMatch(); }} className="flex-1 py-3 bg-primary text-primary-foreground rounded-lg font-display font-semibold hover:bg-primary/90 transition-all flex items-center justify-center gap-2"><Zap className="w-4 h-4" />Rematch</button>
+            <button onClick={resetBattle} className="flex-1 py-3 bg-muted text-foreground rounded-sm font-display font-semibold hover:bg-muted/80 transition-all">Back</button>
+            <button onClick={() => { resetBattle(); handleFindMatch(); }} className="flex-1 py-3 bg-primary text-primary-foreground rounded-sm font-display font-semibold hover:bg-primary/90 transition-all flex items-center justify-center gap-2"><Zap className="w-4 h-4" />Rematch</button>
           </div>
         </motion.div>
       </div>
@@ -593,7 +593,7 @@ const Battle = () => {
       <div className="flex gap-2 overflow-x-auto pb-2">
         {tabs.map(tab => (
           <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${activeTab === tab.id ? 'bg-primary/10 text-primary border border-primary/30' : 'text-muted-foreground hover:text-foreground hover:bg-muted'}`}>
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-sm text-sm font-medium whitespace-nowrap transition-all ${activeTab === tab.id ? 'bg-primary/10 text-primary border border-primary/30' : 'text-muted-foreground hover:text-foreground hover:bg-muted'}`}>
             <tab.icon className="w-4 h-4" />{tab.label}
           </button>
         ))}
@@ -607,22 +607,22 @@ const Battle = () => {
             <h2 className="font-display text-xl font-bold text-foreground mb-2">Quick Match</h2>
             <p className="text-muted-foreground text-sm mb-2">Find an opponent near your ELO rating</p>
             <p className="text-2xl font-bold text-primary font-mono mb-6">{user.elo}</p>
-            <button onClick={handleFindMatch} className="px-8 py-3 bg-primary text-primary-foreground rounded-lg font-display font-semibold tracking-wider hover:bg-primary/90 transition-all">Find Match</button>
+            <button onClick={handleFindMatch} className="px-8 py-3 bg-primary text-primary-foreground rounded-sm font-display font-semibold tracking-wider hover:bg-primary/90 transition-all">Find Match</button>
           </div>
         )}
 
         {/* ── INVITE FRIEND ── */}
         {activeTab === 'invite' && (
-          <div className="max-w-lg mx-auto space-y-6">
+          <div className="max-w-5xl mx-auto space-y-6">
             <div className="glass-card gradient-border p-8">
               <h2 className="font-display text-xl font-bold text-foreground mb-4">Invite a Friend</h2>
               <div className="space-y-4">
                 <div>
                   <label className="text-sm text-muted-foreground mb-1.5 block">Friend's Code</label>
                   <input value={friendCode} onChange={e => setFriendCode(e.target.value)} placeholder="Enter friend code..."
-                    className="w-full px-4 py-3 bg-muted border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                    className="w-full px-4 py-3 bg-muted border border-border rounded-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
                 </div>
-                <div className="glass-card p-4 rounded-lg">
+                <div className="glass-card p-4 rounded-sm">
                   <p className="text-sm text-muted-foreground mb-1">Your Code</p>
                   <div className="flex items-center justify-between">
                     <p className="font-mono text-lg text-primary font-bold">{user.inviteCode}</p>
@@ -630,7 +630,7 @@ const Battle = () => {
                   </div>
                 </div>
                 <button onClick={handleSendInvite} disabled={sendingInvite || !friendCode.trim()}
-                  className="w-full py-3 bg-primary text-primary-foreground rounded-lg font-display font-semibold tracking-wider hover:bg-primary/90 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                  className="w-full py-3 bg-primary text-primary-foreground rounded-sm font-display font-semibold tracking-wider hover:bg-primary/90 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
                   {sendingInvite ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   Send Invite
                 </button>
@@ -648,8 +648,8 @@ const Battle = () => {
                       <p className="text-xs text-muted-foreground">wants to battle you</p>
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={() => handleAcceptInvite(inv)} className="px-3 py-1.5 bg-accent text-accent-foreground rounded-lg text-sm font-semibold hover:bg-accent/90">Accept</button>
-                      <button onClick={() => handleDeclineInvite(inv)} className="px-3 py-1.5 bg-muted text-muted-foreground rounded-lg text-sm hover:bg-destructive/20 hover:text-destructive">Decline</button>
+                      <button onClick={() => handleAcceptInvite(inv)} className="px-3 py-1.5 bg-accent text-accent-foreground rounded-sm text-sm font-semibold hover:bg-accent/90">Accept</button>
+                      <button onClick={() => handleDeclineInvite(inv)} className="px-3 py-1.5 bg-muted text-muted-foreground rounded-sm text-sm hover:bg-destructive/20 hover:text-destructive">Decline</button>
                     </div>
                   </div>
                 ))}
@@ -660,28 +660,28 @@ const Battle = () => {
 
         {/* ── CUSTOM ROOM ── */}
         {activeTab === 'custom' && (
-          <div className="max-w-2xl mx-auto space-y-6">
+          <div className="max-w-5xl mx-auto space-y-6">
             <div className="glass-card gradient-border p-8">
               <h2 className="font-display text-xl font-bold text-foreground mb-4">Create Custom Room</h2>
               <div className="space-y-4">
                 <div>
                   <label className="text-sm text-muted-foreground mb-1.5 block">Room Name</label>
                   <input value={roomName} onChange={e => setRoomName(e.target.value)} placeholder="My Battle Room"
-                    className="w-full px-4 py-3 bg-muted border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                    className="w-full px-4 py-3 bg-muted border border-border rounded-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
                 </div>
                 <div>
                   <label className="text-sm text-muted-foreground mb-1.5 block">Difficulty</label>
                   <div className="flex gap-2">
                     {(['easy', 'medium', 'hard'] as const).map(d => (
                       <button key={d} onClick={() => setRoomDifficulty(d)}
-                        className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-all ${roomDifficulty === d ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/50 hover:text-primary'}`}>
+                        className={`flex-1 py-2 rounded-sm border text-sm font-medium transition-all ${roomDifficulty === d ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:border-primary/50 hover:text-primary'}`}>
                         {d.charAt(0).toUpperCase() + d.slice(1)}
                       </button>
                     ))}
                   </div>
                 </div>
                 <button onClick={handleCreateRoom} disabled={creatingRoom || !roomName.trim()}
-                  className="w-full py-3 bg-primary text-primary-foreground rounded-lg font-display font-semibold tracking-wider hover:bg-primary/90 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                  className="w-full py-3 bg-primary text-primary-foreground rounded-sm font-display font-semibold tracking-wider hover:bg-primary/90 transition-all disabled:opacity-50 flex items-center justify-center gap-2">
                   {creatingRoom ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
                   Create Room
                 </button>
@@ -693,8 +693,8 @@ const Battle = () => {
               <h3 className="font-display text-sm font-bold text-foreground mb-3">Join by Room Code</h3>
               <div className="flex gap-2">
                 <input value={joinCode} onChange={e => setJoinCode(e.target.value)} placeholder="Enter room code..."
-                  className="flex-1 px-4 py-2.5 bg-muted border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm" />
-                <button onClick={handleJoinByCode} className="px-4 py-2.5 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-primary/90">Join</button>
+                  className="flex-1 px-4 py-2.5 bg-muted border border-border rounded-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm" />
+                <button onClick={handleJoinByCode} className="px-4 py-2.5 bg-primary text-primary-foreground rounded-sm text-sm font-semibold hover:bg-primary/90">Join</button>
               </div>
             </div>
 
@@ -702,22 +702,22 @@ const Battle = () => {
             {rooms.length > 0 && (
               <div className="space-y-3">
                 <h3 className="font-display text-sm font-bold text-foreground">Open Rooms</h3>
-                {rooms.filter(r => !r.is_private).map(r => (
+                <div className="grid gap-3 md:grid-cols-2">{rooms.filter(r => !r.is_private).map(r => (
                   <div key={r.id} className="glass-card-hover p-5 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center"><Swords className="w-5 h-5 text-primary" /></div>
+                      <div className="w-10 h-10 rounded-sm bg-primary/20 flex items-center justify-center"><Swords className="w-5 h-5 text-primary" /></div>
                       <div>
                         <h3 className="font-semibold text-foreground">{r.name}</h3>
                         <p className="text-xs text-muted-foreground">{r.room_participants?.length || 0}/{r.max_players} players · {r.difficulty} · Code: <span className="text-primary font-mono">{r.room_code}</span></p>
                       </div>
                     </div>
                     {userInRoom(r) ? (
-                      <button onClick={() => handleStartRoomBattle(r.id)} className="px-4 py-2 bg-accent text-accent-foreground rounded-lg text-sm font-semibold hover:bg-accent/90 flex items-center gap-1"><Play className="w-3 h-3" />Start</button>
+                      <button onClick={() => handleStartRoomBattle(r.id)} className="px-4 py-2 bg-accent text-accent-foreground rounded-sm text-sm font-semibold hover:bg-accent/90 flex items-center gap-1"><Play className="w-3 h-3" />Start</button>
                     ) : (
-                      <button onClick={() => handleJoinRoom(r.id)} className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-primary/90">Join</button>
+                      <button onClick={() => handleJoinRoom(r.id)} className="px-4 py-2 bg-primary text-primary-foreground rounded-sm text-sm font-semibold hover:bg-primary/90">Join</button>
                     )}
                   </div>
-                ))}
+                ))}</div>
               </div>
             )}
           </div>
@@ -725,11 +725,11 @@ const Battle = () => {
 
         {/* ── TOURNAMENTS ── */}
         {activeTab === 'tournament' && (
-          <div className="max-w-2xl mx-auto space-y-6">
+          <div className="max-w-5xl mx-auto space-y-6">
             <div className="flex items-center justify-between">
               <h3 className="font-display text-sm font-bold text-foreground">Active Tournaments</h3>
               <button onClick={() => setShowCreateTournament(!showCreateTournament)}
-                className="px-4 py-2 bg-primary/10 text-primary border border-primary/30 rounded-lg text-sm font-semibold hover:bg-primary/20 flex items-center gap-1">
+                className="px-4 py-2 bg-primary/10 text-primary border border-primary/30 rounded-sm text-sm font-semibold hover:bg-primary/20 flex items-center gap-1">
                 <Plus className="w-4 h-4" />{showCreateTournament ? 'Cancel' : 'Create'}
               </button>
             </div>
@@ -737,14 +737,14 @@ const Battle = () => {
             {showCreateTournament && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="glass-card gradient-border p-6 space-y-4">
                 <input value={tournamentName} onChange={e => setTournamentName(e.target.value)} placeholder="Tournament Name"
-                  className="w-full px-4 py-3 bg-muted border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                  className="w-full px-4 py-3 bg-muted border border-border rounded-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm text-muted-foreground mb-1.5 block">Max Players</label>
                     <div className="flex gap-2">
                       {[4, 8, 16, 32].map(n => (
                         <button key={n} onClick={() => setTournamentMaxPlayers(n)}
-                          className={`flex-1 py-2 rounded-lg border text-sm transition-all ${tournamentMaxPlayers === n ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}>{n}</button>
+                          className={`flex-1 py-2 rounded-sm border text-sm transition-all ${tournamentMaxPlayers === n ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}>{n}</button>
                       ))}
                     </div>
                   </div>
@@ -753,7 +753,7 @@ const Battle = () => {
                     <div className="flex gap-2">
                       {(['easy', 'medium', 'hard'] as const).map(d => (
                         <button key={d} onClick={() => setTournamentDifficulty(d)}
-                          className={`flex-1 py-2 rounded-lg border text-sm transition-all ${tournamentDifficulty === d ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}>
+                          className={`flex-1 py-2 rounded-sm border text-sm transition-all ${tournamentDifficulty === d ? 'border-primary bg-primary/10 text-primary' : 'border-border text-muted-foreground'}`}>
                           {d.charAt(0).toUpperCase() + d.slice(1)}
                         </button>
                       ))}
@@ -761,14 +761,14 @@ const Battle = () => {
                   </div>
                 </div>
                 <button onClick={handleCreateTournament} disabled={creatingTournament || !tournamentName.trim()}
-                  className="w-full py-3 bg-primary text-primary-foreground rounded-lg font-display font-semibold hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2">
+                  className="w-full py-3 bg-primary text-primary-foreground rounded-sm font-display font-semibold hover:bg-primary/90 disabled:opacity-50 flex items-center justify-center gap-2">
                   {creatingTournament ? <Loader2 className="w-4 h-4 animate-spin" /> : <Crown className="w-4 h-4" />}
                   Create Tournament
                 </button>
               </motion.div>
             )}
 
-            {tournaments.length === 0 ? (
+            <div className="grid gap-3 md:grid-cols-2">{tournaments.length === 0 ? (
               <div className="glass-card p-8 text-center">
                 <Trophy className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
                 <p className="text-muted-foreground">No active tournaments. Create one!</p>
@@ -776,7 +776,7 @@ const Battle = () => {
             ) : tournaments.map(t => (
               <div key={t.id} className="glass-card-hover p-5 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-secondary/20 flex items-center justify-center"><Trophy className="w-5 h-5 text-secondary" /></div>
+                  <div className="w-10 h-10 rounded-sm bg-secondary/20 flex items-center justify-center"><Trophy className="w-5 h-5 text-secondary" /></div>
                   <div>
                     <h3 className="font-semibold text-foreground">{t.name}</h3>
                     <p className="text-xs text-muted-foreground">
@@ -785,23 +785,23 @@ const Battle = () => {
                   </div>
                 </div>
                 {userInTournament(t) ? (
-                  <span className="px-4 py-2 bg-accent/10 text-accent rounded-lg text-sm font-semibold flex items-center gap-1"><CheckCircle2 className="w-3 h-3" />Joined</span>
+                  <span className="px-4 py-2 bg-accent/10 text-accent rounded-sm text-sm font-semibold flex items-center gap-1"><CheckCircle2 className="w-3 h-3" />Joined</span>
                 ) : (
                   <button onClick={() => handleJoinTournament(t.id)} disabled={t.status === 'full'}
-                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${t.status === 'full' ? 'bg-muted text-muted-foreground cursor-not-allowed' : 'bg-secondary text-secondary-foreground hover:bg-secondary/90'}`}>
+                    className={`px-4 py-2 rounded-sm text-sm font-semibold transition-all ${t.status === 'full' ? 'bg-muted text-muted-foreground cursor-not-allowed' : 'bg-secondary text-secondary-foreground hover:bg-secondary/90'}`}>
                     {t.status === 'full' ? 'Full' : 'Join'}
                   </button>
                 )}
               </div>
-            ))}
+            ))}</div>
           </div>
         )}
 
         {/* ── SPECTATE ── */}
         {activeTab === 'spectate' && (
-          <div className="max-w-2xl mx-auto space-y-4">
+          <div className="max-w-5xl mx-auto space-y-4">
             <p className="text-sm text-muted-foreground">Live matches you can watch:</p>
-            {liveRooms.length === 0 ? (
+            <div className="grid gap-3 md:grid-cols-2">{liveRooms.length === 0 ? (
               <div className="glass-card p-8 text-center">
                 <Eye className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
                 <p className="text-muted-foreground">No live matches right now. Start a battle!</p>
@@ -825,11 +825,11 @@ const Battle = () => {
                   {m.room_participants?.length === 2 && <div className="px-4"><Swords className="w-6 h-6 text-secondary" /></div>}
                 </div>
                 <p className="text-xs text-muted-foreground text-center mt-2">{m.name}</p>
-                <button onClick={() => handleSpectate(m.id)} className="w-full mt-3 py-2 bg-muted text-foreground rounded-lg text-sm font-medium hover:bg-primary/10 hover:text-primary transition-all flex items-center justify-center gap-2">
+                <button onClick={() => handleSpectate(m.id)} className="w-full mt-3 py-2 bg-muted text-foreground rounded-sm text-sm font-medium hover:bg-primary/10 hover:text-primary transition-all flex items-center justify-center gap-2">
                   <Eye className="w-3 h-3" />Watch
                 </button>
               </div>
-            ))}
+            ))}</div>
           </div>
         )}
       </motion.div>

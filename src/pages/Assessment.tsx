@@ -145,11 +145,11 @@ const Assessment = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-8">
-            <div className="glass-card p-4 rounded-lg">
+            <div className="glass-card p-4 rounded-sm">
               <p className="text-sm text-muted-foreground">Correct</p>
               <p className="text-2xl font-bold text-accent">{correct}/{questions.length}</p>
             </div>
-            <div className="glass-card p-4 rounded-lg">
+            <div className="glass-card p-4 rounded-sm">
               <p className="text-sm text-muted-foreground">Level</p>
               <p className="text-2xl font-bold text-secondary">{Math.floor(elo / 200) + 1}</p>
             </div>
@@ -157,7 +157,7 @@ const Assessment = () => {
 
           <button
             onClick={() => navigate('/dashboard')}
-            className="w-full py-3 bg-primary text-primary-foreground rounded-lg font-display font-semibold tracking-wider hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
+            className="w-full py-3 bg-primary text-primary-foreground rounded-sm font-display font-semibold tracking-wider hover:bg-primary/90 transition-all flex items-center justify-center gap-2"
           >
             Enter Dashboard
             <ArrowRight className="w-4 h-4" />
@@ -204,7 +204,7 @@ const Assessment = () => {
             <h2 className="font-display text-xl font-bold text-foreground mt-3 mb-4">{q.question}</h2>
 
             {q.code && (
-              <pre className="bg-muted p-4 rounded-lg text-sm font-mono text-foreground mb-6 overflow-x-auto border border-border">
+              <pre className="bg-muted p-4 rounded-sm text-sm font-mono text-foreground mb-6 overflow-x-auto border border-border">
                 {q.code}
               </pre>
             )}
@@ -220,7 +220,7 @@ const Assessment = () => {
                     key={idx}
                     onClick={() => handleAnswer(idx)}
                     disabled={submittedAnswer !== null}
-                    className={`w-full p-4 rounded-lg border text-left transition-all flex items-center gap-3 ${
+                    className={`w-full p-4 rounded-sm border text-left transition-all flex items-center gap-3 ${
                       showFeedback && isCorrect
                         ? 'border-accent bg-accent/10 text-accent'
                         : showFeedback && isSelected && !isCorrect

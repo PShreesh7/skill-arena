@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Swords, Zap, Trophy, ArrowRight, Loader2, Mail, KeyRound } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
 const Landing = () => {
   const [mode, setMode] = useState<'login' | 'signup' | 'forgot' | 'resend'>('login');
   const [email, setEmail] = useState('');
@@ -112,7 +113,7 @@ const Landing = () => {
     forgot: 'Send Reset Link',
     resend: 'Resend Email'
   };
-  return <div className="min-h-screen bg-background flex">
+  return <div className="auth-screen min-h-screen bg-background flex">
       {/* Left side - branding */}
       <div className="hidden lg:flex flex-1 items-center justify-center p-12 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-glow-purple/5" />
@@ -184,7 +185,7 @@ const Landing = () => {
           <div className="glass-card p-8 gradient-border">
             <div className="lg:hidden flex items-center gap-3 mb-8">
               <Swords className="w-8 h-8 text-primary" />
-              <h1 className="font-display text-2xl font-bold text-foreground">CodeClash</h1>
+              <h1 className="font-display text-2xl font-bold text-foreground">Skill Arena</h1>
             </div>
 
             <h2 className="font-display text-xl font-bold text-foreground mb-2">
@@ -208,37 +209,37 @@ const Landing = () => {
                   <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-4 py-3 bg-muted border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all" placeholder="••••••••" required minLength={6} />
                 </div>}
 
-              <button type="submit" disabled={submitting} className="w-full py-3 bg-primary text-primary-foreground rounded-lg font-display font-semibold tracking-wider hover:bg-primary/90 transition-all flex items-center justify-center gap-2 mt-6 disabled:opacity-50">
+              <Button type="submit" disabled={submitting} className="mt-6 w-full">
                 {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <>
                     {buttonLabels[mode]}
                     <ArrowRight className="w-4 h-4" />
                   </>}
-              </button>
+              </Button>
             </form>
 
             {/* Contextual links */}
             {mode === 'login' && <div className="mt-4 flex items-center justify-between text-sm">
-                <button onClick={() => setMode('forgot')} className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
+                <Button variant="link" size="sm" onClick={() => setMode('forgot')} className="h-auto p-0 text-muted-foreground hover:text-primary normal-case">
                   <KeyRound className="w-3.5 h-3.5" />
                   Forgot password?
-                </button>
-                <button onClick={() => setMode('resend')} className="text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
+                </Button>
+                <Button variant="link" size="sm" onClick={() => setMode('resend')} className="h-auto p-0 text-muted-foreground hover:text-primary normal-case">
                   <Mail className="w-3.5 h-3.5" />
                   Resend verification
-                </button>
+                </Button>
               </div>}
 
             {(mode === 'forgot' || mode === 'resend') && <div className="mt-4 text-center">
-                <button onClick={() => setMode('login')} className="text-sm text-primary hover:underline font-medium">
+                <Button variant="link" onClick={() => setMode('login')} className="h-auto p-0 text-primary">
                   ← Back to login
-                </button>
+                </Button>
               </div>}
 
             <p className="text-center text-sm text-muted-foreground mt-6">
               {mode === 'login' || mode === 'forgot' || mode === 'resend' ? "Don't have an account?" : 'Already have an account?'}{' '}
-              <button onClick={() => setMode(mode === 'signup' ? 'login' : mode === 'login' ? 'signup' : 'signup')} className="text-primary hover:underline font-medium">
+              <Button variant="link" onClick={() => setMode(mode === 'signup' ? 'login' : mode === 'login' ? 'signup' : 'signup')} className="h-auto p-0 text-primary">
                 {mode === 'signup' ? 'Log in' : 'Sign up'}
-              </button>
+              </Button>
             </p>
           </div>
         </motion.div>

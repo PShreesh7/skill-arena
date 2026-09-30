@@ -44,20 +44,20 @@ const Progress = () => {
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={mockEloHistory}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(222 30% 18%)" />
-              <XAxis dataKey="date" stroke="hsl(215 20% 55%)" fontSize={12} />
-              <YAxis stroke="hsl(215 20% 55%)" fontSize={12} />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+              <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
               <Tooltip
                 contentStyle={{
-                  background: 'hsl(222 41% 10%)',
-                  border: '1px solid hsl(222 30% 18%)',
+                  background: 'hsl(var(--card))',
+                  border: '1px solid hsl(var(--border))',
                   borderRadius: '8px',
-                  color: 'hsl(210 40% 92%)',
+                  color: 'hsl(var(--foreground))',
                   fontFamily: 'JetBrains Mono',
                   fontSize: '12px',
                 }}
               />
-              <Line type="monotone" dataKey="elo" stroke="hsl(187 100% 50%)" strokeWidth={2} dot={{ fill: 'hsl(187 100% 50%)', r: 4 }} />
+              <Line type="monotone" dataKey="elo" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ fill: 'hsl(var(--primary))', r: 4 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -72,20 +72,20 @@ const Progress = () => {
         <div className="h-72">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={mockConceptProgress}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(222 30% 18%)" />
-              <XAxis dataKey="concept" stroke="hsl(215 20% 55%)" fontSize={12} />
-              <YAxis stroke="hsl(215 20% 55%)" fontSize={12} domain={[0, 100]} />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis dataKey="concept" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+              <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} domain={[0, 100]} />
               <Tooltip
                 contentStyle={{
-                  background: 'hsl(222 41% 10%)',
-                  border: '1px solid hsl(222 30% 18%)',
+                  background: 'hsl(var(--card))',
+                  border: '1px solid hsl(var(--border))',
                   borderRadius: '8px',
-                  color: 'hsl(210 40% 92%)',
+                  color: 'hsl(var(--foreground))',
                   fontFamily: 'JetBrains Mono',
                   fontSize: '12px',
                 }}
               />
-              <Bar dataKey="mastery" fill="hsl(32 95% 55%)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="mastery" fill="hsl(var(--secondary))" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
