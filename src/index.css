@@ -212,6 +212,12 @@
 
   .editor-code { tab-size: 2; }
 
+  .editor-shell .hljs-keyword, .editor-shell .hljs-selector-tag, .editor-shell .hljs-built_in { color: hsl(var(--glow-purple)); }
+  .editor-shell .hljs-string, .editor-shell .hljs-attr { color: hsl(var(--accent)); }
+  .editor-shell .hljs-number, .editor-shell .hljs-literal { color: hsl(var(--secondary)); }
+  .editor-shell .hljs-comment, .editor-shell .hljs-quote { color: hsl(var(--muted-foreground)); }
+  .editor-shell .hljs-title, .editor-shell .hljs-function { color: hsl(var(--primary)); }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
   }
