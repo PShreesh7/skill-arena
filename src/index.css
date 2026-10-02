@@ -2,9 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import '@fontsource-variable/space-grotesk';
-@import '@fontsource-variable/dm-sans';
-
 @layer base {
   :root {
     --background: 150 24% 4%;
