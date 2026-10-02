@@ -5,6 +5,7 @@ import { Swords, Zap, Trophy, ArrowRight, Loader2, Mail, KeyRound } from 'lucide
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
+import arenaStage from '@/assets/arena-stage.jpg';
 const Landing = () => {
   const [mode, setMode] = useState<'login' | 'signup' | 'forgot' | 'resend'>('login');
   const [email, setEmail] = useState('');
@@ -113,137 +114,36 @@ const Landing = () => {
     forgot: 'Send Reset Link',
     resend: 'Resend Email'
   };
-  return <div className="auth-screen min-h-screen bg-background flex">
-      {/* Left side - branding */}
-      <div className="hidden lg:flex flex-1 items-center justify-center p-12 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-glow-purple/5" />
-        
-        <motion.div initial={{
-        opacity: 0,
-        y: 30
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        duration: 0.8
-      }} className="relative z-10 max-w-lg">
-          <div className="flex items-center gap-4 mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center border border-primary/30">
-              <Swords className="w-8 h-8 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-4xl font-bold text-foreground tracking-wider glow-text font-sans">Skill Arena </h1>
-              <p className="text-muted-foreground">AI Powered Skill Evolution</p>
-            </div>
-          </div>
-
-          <div className="space-y-6 mt-12">
-            {[{
-            icon: Zap,
-            title: 'AI Assessment',
-            desc: 'Get your ELO rating through adaptive coding challenges'
-          }, {
-            icon: Swords,
-            title: 'Real-time Battles',
-            desc: 'Compete head-to-head with developers worldwide'
-          }, {
-            icon: Trophy,
-            title: 'Earn Achievements',
-            desc: 'Unlock badges, climb leaderboards, grow your skills'
-          }].map((item, i) => <motion.div key={item.title} initial={{
-            opacity: 0,
-            x: -20
-          }} animate={{
-            opacity: 1,
-            x: 0
-          }} transition={{
-            delay: 0.3 + i * 0.15
-          }} className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 shrink-0 mt-0.5">
-                  <item.icon className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-foreground">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground">{item.desc}</p>
-                </div>
-              </motion.div>)}
-          </div>
+  return <div className="auth-screen relative min-h-screen overflow-hidden bg-background">
+    <img src={arenaStage} width={1536} height={1024} alt="A glowing trophy in the Skill Arena" className="absolute inset-0 h-full w-full object-cover object-center opacity-60" />
+    <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/65 to-background" />
+    <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col px-5 py-7 sm:px-8 lg:px-12">
+      <div className="flex items-center gap-3 text-primary"><span className="flex size-9 items-center justify-center border border-primary/60 bg-background/80 shadow-[0_0_22px_hsl(var(--primary)/0.3)]"><Swords className="size-5" /></span><span className="font-display text-sm font-bold uppercase text-foreground">Skill Arena</span><span className="ml-auto hidden font-mono text-xs uppercase text-accent sm:block">System Online / Season 04</span></div>
+      <div className="grid flex-1 items-center gap-10 py-10 lg:grid-cols-[minmax(0,1fr)_minmax(340px,420px)] lg:gap-16">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl">
+          <p className="mb-4 font-mono text-xs font-bold uppercase text-accent">// Your arena awaits</p>
+          <h1 className="arena-title font-display text-5xl font-black uppercase leading-[0.95] text-primary sm:text-7xl lg:text-8xl">SKILL<br /><span className="text-accent">ARENA</span></h1>
+          <p className="mt-6 max-w-lg text-lg font-medium leading-relaxed text-foreground">Your code is your weapon. Your rank is earned.</p>
+          <p className="mt-2 max-w-lg text-sm text-muted-foreground">AI-powered challenges, ELO-ranked battles, and a path to mastery.</p>
+          <div className="mt-8 flex flex-wrap gap-2 font-mono text-[10px] uppercase sm:text-xs"><span className="border border-primary/50 bg-background/70 px-3 py-2 text-primary"><Zap className="mr-1 inline size-3" /> Adaptive assessment</span><span className="border border-accent/50 bg-background/70 px-3 py-2 text-accent"><Swords className="mr-1 inline size-3" /> Ranked battles</span><span className="border border-secondary/50 bg-background/70 px-3 py-2 text-secondary"><Trophy className="mr-1 inline size-3" /> Earn your ELO</span></div>
+        </motion.div>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="arena-auth-shell w-full border border-accent/60 bg-background/90 p-6 backdrop-blur-xl sm:p-8">
+          <div className="mb-6 flex items-center gap-2 border-b border-border pb-4 font-mono text-[10px] uppercase text-primary"><span className="size-2 animate-pulse rounded-full bg-primary" /> Access terminal <span className="ml-auto text-muted-foreground">01 / Identity</span></div>
+          <h2 className="font-display text-2xl font-bold text-foreground">{titles[mode].heading}</h2>
+          <p className="mb-7 mt-1 text-sm text-muted-foreground">{titles[mode].sub}</p>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {mode === 'signup' && <div><label htmlFor="arena-username" className="mb-1.5 block text-xs font-bold uppercase text-foreground">Username</label><input id="arena-username" type="text" value={username} onChange={e => setUsername(e.target.value)} className="w-full border border-border bg-muted px-4 py-3 text-foreground placeholder:text-muted-foreground" placeholder="cyberwarrior" required /></div>}
+            <div><label htmlFor="arena-email" className="mb-1.5 block text-xs font-bold uppercase text-foreground">Email</label><input id="arena-email" type="email" value={email} onChange={e => setEmail(e.target.value)} className="w-full border border-border bg-muted px-4 py-3 text-foreground placeholder:text-muted-foreground" placeholder="you@example.com" required /></div>
+            {(mode === 'login' || mode === 'signup') && <div><label htmlFor="arena-password" className="mb-1.5 block text-xs font-bold uppercase text-foreground">Password</label><input id="arena-password" type="password" value={password} onChange={e => setPassword(e.target.value)} className="w-full border border-border bg-muted px-4 py-3 text-foreground placeholder:text-muted-foreground" placeholder="••••••••" required minLength={6} /></div>}
+            <Button type="submit" disabled={submitting} className="mt-4 w-full bg-primary text-primary-foreground hover:bg-primary/90">{submitting ? <Loader2 className="size-4 animate-spin" /> : <>{buttonLabels[mode]}<ArrowRight className="size-4" /></>}</Button>
+          </form>
+          {mode === 'login' && <div className="mt-4 flex flex-wrap items-center justify-between gap-2"><Button variant="link" size="sm" onClick={() => setMode('forgot')} className="h-auto p-0 text-muted-foreground hover:text-primary"><KeyRound className="size-3.5" />Forgot password?</Button><Button variant="link" size="sm" onClick={() => setMode('resend')} className="h-auto p-0 text-muted-foreground hover:text-primary"><Mail className="size-3.5" />Resend verification</Button></div>}
+          {(mode === 'forgot' || mode === 'resend') && <Button variant="link" onClick={() => setMode('login')} className="mt-4 h-auto p-0 text-primary">← Back to login</Button>}
+          <p className="mt-6 border-t border-border pt-5 text-center text-sm text-muted-foreground">{mode === 'signup' ? 'Already have an account?' : 'New recruit?'}{' '}<Button variant="link" onClick={() => setMode(mode === 'signup' ? 'login' : 'signup')} className="h-auto p-0 text-primary">{mode === 'signup' ? 'Log in' : 'Create profile'}</Button></p>
         </motion.div>
       </div>
-
-      {/* Right side - auth form */}
-      <div className="flex-1 flex items-center justify-center p-8">
-        <motion.div initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        duration: 0.5
-      }} className="w-full max-w-md">
-          <div className="glass-card p-8 gradient-border">
-            <div className="lg:hidden flex items-center gap-3 mb-8">
-              <Swords className="w-8 h-8 text-primary" />
-              <h1 className="font-display text-2xl font-bold text-foreground">Skill Arena</h1>
-            </div>
-
-            <h2 className="font-display text-xl font-bold text-foreground mb-2">
-              {titles[mode].heading}
-            </h2>
-            <p className="text-muted-foreground text-sm mb-8">
-              {titles[mode].sub}
-            </p>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {mode === 'signup' && <div>
-                  <label className="text-sm font-medium text-foreground mb-1.5 block">Username</label>
-                  <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} className="w-full px-4 py-3 bg-muted border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all" placeholder="cyberwarrior" required />
-                </div>}
-              <div>
-                <label className="text-sm font-medium text-foreground mb-1.5 block">Email</label>
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-3 bg-muted border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all" placeholder="you@example.com" required />
-              </div>
-              {(mode === 'login' || mode === 'signup') && <div>
-                  <label className="text-sm font-medium text-foreground mb-1.5 block">Password</label>
-                  <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full px-4 py-3 bg-muted border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all" placeholder="••••••••" required minLength={6} />
-                </div>}
-
-              <Button type="submit" disabled={submitting} className="mt-6 w-full">
-                {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <>
-                    {buttonLabels[mode]}
-                    <ArrowRight className="w-4 h-4" />
-                  </>}
-              </Button>
-            </form>
-
-            {/* Contextual links */}
-            {mode === 'login' && <div className="mt-4 flex items-center justify-between text-sm">
-                <Button variant="link" size="sm" onClick={() => setMode('forgot')} className="h-auto p-0 text-muted-foreground hover:text-primary normal-case">
-                  <KeyRound className="w-3.5 h-3.5" />
-                  Forgot password?
-                </Button>
-                <Button variant="link" size="sm" onClick={() => setMode('resend')} className="h-auto p-0 text-muted-foreground hover:text-primary normal-case">
-                  <Mail className="w-3.5 h-3.5" />
-                  Resend verification
-                </Button>
-              </div>}
-
-            {(mode === 'forgot' || mode === 'resend') && <div className="mt-4 text-center">
-                <Button variant="link" onClick={() => setMode('login')} className="h-auto p-0 text-primary">
-                  ← Back to login
-                </Button>
-              </div>}
-
-            <p className="text-center text-sm text-muted-foreground mt-6">
-              {mode === 'login' || mode === 'forgot' || mode === 'resend' ? "Don't have an account?" : 'Already have an account?'}{' '}
-              <Button variant="link" onClick={() => setMode(mode === 'signup' ? 'login' : mode === 'login' ? 'signup' : 'signup')} className="h-auto p-0 text-primary">
-                {mode === 'signup' ? 'Log in' : 'Sign up'}
-              </Button>
-            </p>
-          </div>
-        </motion.div>
-      </div>
-    </div>;
+      <p className="font-mono text-[10px] uppercase text-muted-foreground">Build your skills. Claim your rank.</p>
+    </div>
+  </div>;
 };
 export default Landing;
