@@ -2,54 +2,57 @@
 @tailwind components;
 @tailwind utilities;
 
+@import '@fontsource-variable/space-grotesk';
+@import '@fontsource-variable/dm-sans';
+
 @layer base {
   :root {
-    --background: 220 33% 4%;
-    --foreground: 210 29% 92%;
+    --background: 150 24% 4%;
+    --foreground: 156 30% 95%;
 
-    --card: 218 42% 9%;
+    --card: 155 23% 9%;
     --card-foreground: 210 40% 92%;
 
-    --popover: 218 42% 9%;
+    --popover: 155 23% 9%;
     --popover-foreground: 210 40% 92%;
 
-    --primary: 184 100% 50%;
-    --primary-foreground: 220 33% 4%;
+    --primary: 150 100% 61%;
+    --primary-foreground: 150 24% 4%;
 
-    --secondary: 43 100% 50%;
-    --secondary-foreground: 220 33% 4%;
+    --secondary: 42 100% 50%;
+    --secondary-foreground: 150 24% 4%;
 
-    --muted: 217 31% 13%;
-    --muted-foreground: 215 18% 58%;
+    --muted: 157 18% 14%;
+    --muted-foreground: 157 12% 67%;
 
-    --accent: 152 100% 50%;
-    --accent-foreground: 220 33% 4%;
+    --accent: 188 100% 50%;
+    --accent-foreground: 150 24% 4%;
 
     --destructive: 344 100% 59%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 190 43% 20%;
-    --input: 217 31% 13%;
-    --ring: 184 100% 50%;
+    --border: 159 32% 23%;
+    --input: 157 18% 14%;
+    --ring: 150 100% 61%;
 
     --radius: 0.35rem;
 
-    --sidebar-background: 220 38% 5%;
+    --sidebar-background: 151 26% 5%;
     --sidebar-foreground: 210 40% 85%;
-    --sidebar-primary: 184 100% 50%;
+    --sidebar-primary: 150 100% 61%;
     --sidebar-primary-foreground: 222 47% 6%;
-    --sidebar-accent: 217 31% 12%;
+    --sidebar-accent: 157 18% 14%;
     --sidebar-accent-foreground: 210 40% 92%;
-    --sidebar-border: 190 43% 18%;
-    --sidebar-ring: 184 100% 50%;
+    --sidebar-border: 159 32% 23%;
+    --sidebar-ring: 150 100% 61%;
 
     /* Custom tokens */
-    --glow-primary: 184 100% 50%;
-    --glow-secondary: 43 100% 50%;
-    --glow-accent: 152 100% 50%;
-    --glow-purple: 277 100% 50%;
-    --surface-glass: 218 42% 9%;
-    --void-deep: 220 36% 6%;
+    --glow-primary: 150 100% 61%;
+    --glow-secondary: 42 100% 50%;
+    --glow-accent: 188 100% 50%;
+    --glow-purple: 188 100% 50%;
+    --surface-glass: 155 23% 9%;
+    --void-deep: 150 24% 4%;
   }
 }
 
@@ -60,19 +63,18 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'DM Sans Variable', sans-serif;
     background-image:
-      radial-gradient(circle at 78% 10%, hsl(var(--glow-purple) / 0.08), transparent 30rem),
-      radial-gradient(circle at 10% 80%, hsl(var(--primary) / 0.06), transparent 35rem),
-      radial-gradient(hsl(var(--primary) / 0.13) 0.7px, transparent 0.7px);
-    background-size: auto, auto, 18px 18px;
+      linear-gradient(hsl(var(--primary) / 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--primary) / 0.045) 1px, transparent 1px);
+    background-size: 32px 32px;
     min-width: 320px;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Space Grotesk Variable', sans-serif;
     text-transform: uppercase;
-    letter-spacing: 0.12em;
+    letter-spacing: 0;
   }
 
   code, pre {
@@ -130,9 +132,9 @@
   }
 
   .font-display {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Space Grotesk Variable', sans-serif;
     text-transform: uppercase;
-    letter-spacing: 0.12em;
+    letter-spacing: 0;
   }
 
   .font-mono {
@@ -158,12 +160,12 @@
 
   .telemetry-label {
     @apply text-[10px] uppercase text-muted-foreground;
-    letter-spacing: 0.12em;
+    letter-spacing: 0;
   }
 
   .command-button {
     @apply inline-flex items-center justify-center gap-2 rounded-sm border border-primary/60 bg-primary/10 px-5 py-3 font-mono text-xs font-bold uppercase text-primary transition-all duration-200;
-    letter-spacing: 0.08em;
+    letter-spacing: 0;
     box-shadow: inset 0 0 14px hsl(var(--primary) / 0.08);
   }
 
@@ -196,8 +198,8 @@
   main button:not([role="tab"]):not([data-sidebar]):not([data-radix-collection-item]),
   [role="dialog"] button:not([role="tab"]),
   .auth-screen button {
-    font-family: 'JetBrains Mono', monospace;
-    letter-spacing: 0.05em;
+    font-family: 'Space Grotesk Variable', sans-serif;
+    letter-spacing: 0;
     transition: background-color 180ms, border-color 180ms, color 180ms, transform 180ms, box-shadow 180ms;
   }
 
@@ -228,6 +230,11 @@
   .editor-shell .hljs-number, .editor-shell .hljs-literal { color: hsl(var(--secondary)); }
   .editor-shell .hljs-comment, .editor-shell .hljs-quote { color: hsl(var(--muted-foreground)); }
   .editor-shell .hljs-title, .editor-shell .hljs-function { color: hsl(var(--primary)); }
+
+  .arena-photo { background-image: linear-gradient(180deg, hsl(var(--background) / 0.22), hsl(var(--background) / 0.82) 72%, hsl(var(--background))), var(--arena-photo); background-size: cover; background-position: center; }
+  .arena-auth-shell { box-shadow: 0 0 0 1px hsl(var(--accent) / .7), 0 0 38px hsl(var(--accent) / .27), inset 0 0 26px hsl(var(--primary) / .07); }
+  .arena-mission { box-shadow: inset 0 1px hsl(var(--primary) / .35), 0 0 30px hsl(var(--primary) / .09); }
+  .arena-title { text-shadow: 0 0 24px hsl(var(--primary) / .5), 0 0 60px hsl(var(--accent) / .32); }
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
