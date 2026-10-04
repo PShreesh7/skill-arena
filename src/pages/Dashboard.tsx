@@ -4,7 +4,8 @@ import { motion } from 'framer-motion';
 import StatCard from '@/components/StatCard';
 import { Trophy, Swords, BookOpen, TrendingUp, Target, Flame, Bot, Coins, ArrowRight, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import arenaStage from '@/assets/arena-stage.jpg';
 
 const modeCards = [
   {
@@ -50,37 +51,24 @@ const Dashboard = () => {
   if (!user) return null;
 
   return (
-    <div className="space-y-12 max-w-6xl mx-auto">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div>
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-             <h1 className="text-3xl md:text-4xl font-extrabold">
-              READY FOR <span className="text-primary glow-text">EVOLUTION</span>?
-            </h1>
-            <p className="text-muted-foreground mt-2 text-lg font-medium">
-              Welcome back, operator <span className="text-foreground font-bold">{user.username}</span>. System status: <span className="text-accent font-bold">OPTIMAL</span>.
-            </p>
-          </motion.div>
-        </div>
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-        >
-          <Button variant="neon" size="lg" asChild className="group">
-            <Link to="/battle">
-              INITIATE BATTLE <Swords className="ml-2 w-5 h-5 group-hover:rotate-12 transition-transform" />
-            </Link>
-          </Button>
+    <div className="mx-auto max-w-6xl space-y-8 pb-10">
+      <header className="relative isolate min-h-[350px] overflow-hidden border-b border-primary/50 px-6 py-8 sm:px-10 sm:py-10 md:min-h-[390px]">
+        <img src={arenaStage} width={1536} height={1024} alt="Skill Arena championship stage" className="absolute inset-0 -z-20 h-full w-full object-cover object-center opacity-70" />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-background via-background/85 to-background/25" />
+        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="flex min-h-[290px] max-w-xl flex-col justify-center">
+          <p className="mb-4 font-mono text-xs font-bold uppercase text-accent">● Arena online <span className="mx-2 text-muted-foreground">/</span> Player: {user.username}</p>
+          <h1 className="arena-title font-display text-4xl font-black uppercase leading-none text-foreground sm:text-5xl lg:text-6xl">Your next<br /><span className="text-primary">move starts here.</span></h1>
+          <p className="mt-4 max-w-md text-sm text-foreground/85 sm:text-base">Train your skills or take on an ELO-matched challenger. The choice is yours.</p>
+          <div className="mt-7 flex flex-wrap gap-3">
+            <Button size="lg" asChild className="bg-primary text-primary-foreground hover:bg-primary/90"><Link to="/battle">Enter Battle <Swords className="ml-1 size-4" /></Link></Button>
+            <Button size="lg" variant="outline" asChild className="border-accent/70 bg-background/70 text-accent hover:bg-accent/15"><Link to="/learning">Start Training <BookOpen className="ml-1 size-4" /></Link></Button>
+          </div>
         </motion.div>
+        <span className="absolute bottom-4 right-5 hidden font-mono text-[10px] uppercase text-accent sm:block">ELO {user.elo.toLocaleString()} / Level {user.level}</span>
       </header>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-5">
         <StatCard label="ELO RATING" value={user.elo} icon={Trophy} color="secondary" subtitle={`RANK: LEVEL ${user.level}`} />
         <StatCard label="BATTLES" value={user.totalBattles} icon={Swords} color="primary" />
         <StatCard label="WIN RATE" value={user.totalBattles > 0 ? `${Math.round((user.wins / user.totalBattles) * 100)}%` : '0%'} icon={Target} color="accent" />
@@ -95,7 +83,7 @@ const Dashboard = () => {
           <div className="h-px flex-1 bg-gradient-to-l from-transparent to-border/50" />
         </div>
         
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {modeCards.map((card, i) => (
             <motion.div
               key={card.title}
