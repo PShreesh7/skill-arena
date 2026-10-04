@@ -6,3 +6,5 @@
 - [x] Preserve existing interactions and state.
 - [x] Verify signed-out and authenticated layouts at desktop and mobile sizes.
 - [x] Apply Circuit Rush neon and distinct game-style sign-in and opening screens; verify both sizes and existing links.
+- [ ] Add interactive 3D entrance, distinct mission hub, and shared inner-page visuals while preserving workflows.
+- [ ] Verify 3D rendering, motion, fallback, navigation, and narrow-screen layouts.
