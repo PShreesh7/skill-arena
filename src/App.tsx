@@ -15,6 +15,7 @@ import MatchHistory from "@/pages/MatchHistory";
 import AICoach from "@/pages/AICoach";
 import TokenShop from "@/pages/TokenShop";
 import NotFound from "@/pages/NotFound";
+import ArenaVisual from '@/components/arena/ArenaVisual';
 
 const queryClient = new QueryClient();
 
@@ -45,7 +46,7 @@ const AppRoutes = () => (
   <Routes>
     <Route path="/" element={<AuthRedirect />} />
     <Route path="/assessment" element={
-      <ProtectedRoute><Assessment /></ProtectedRoute>
+      <ProtectedRoute><div className="arena-assessment relative isolate"><ArenaVisual variant="learning" className="fixed inset-0 -z-10" /><Assessment /></div></ProtectedRoute>
     } />
     <Route element={
       <AssessmentGate><AppLayout /></AssessmentGate>

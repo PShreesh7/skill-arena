@@ -231,6 +231,39 @@
   .arena-auth-shell { box-shadow: 0 0 0 1px hsl(var(--accent) / .7), 0 0 38px hsl(var(--accent) / .27), inset 0 0 26px hsl(var(--primary) / .07); }
   .arena-title { text-shadow: 0 0 24px hsl(var(--primary) / .5), 0 0 60px hsl(var(--accent) / .32); }
 
+  .arena-visual { overflow: hidden; pointer-events: none; background: hsl(var(--background)); }
+  .arena-visual-fallback, .arena-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .arena-visual-fallback { object-fit: cover; opacity: .65; }
+  .arena-canvas canvas { display: block; }
+  .arena-entrance-scrim { background: linear-gradient(180deg, hsl(var(--background) / .15), transparent 60%, hsl(var(--background) / .7)); }
+  .arena-band-scrim { background: linear-gradient(90deg, hsl(var(--background) / .8), hsl(var(--background) / .25) 45%, transparent 70%); }
+  .arena-hub-scrim { background: linear-gradient(90deg, hsl(var(--background) / .9), hsl(var(--background) / .35) 45%, transparent 70%); }
+  .arena-entry-copy { min-height: 420px; padding-top: 12px; }
+  .arena-assessment > div.min-h-screen { background: hsl(var(--background) / .5); }
+  .arena-interior [data-slot="card"], .arena-interior .glass-card, .arena-interior .glass-card-hover {
+    box-shadow: 0 6px 0 hsl(var(--background)), 0 7px 0 hsl(var(--border) / .65), 0 15px 24px hsl(var(--background) / .55), inset 0 1px 0 hsl(var(--primary) / .15);
+  }
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .arena-interior .glass-card-hover:hover { transform: perspective(1000px) rotateX(2deg) translateY(-4px); }
+    .arena-auth-shell { transition: box-shadow .25s; }
+    .arena-auth-shell:focus-within { box-shadow: 0 0 0 1px hsl(var(--accent) / .8), 0 0 42px hsl(var(--accent) / .3), 10px 12px 0 hsl(var(--primary) / .07); }
+  }
+  @media (max-width: 1023px) {
+    .arena-entry-copy { min-height: 470px; }
+    .arena-entrance .arena-visual { height: 720px; min-height: 0; }
+    .arena-hub-copy { max-width: 60%; }
+    .arena-hub-copy > p { font-size: 12px; }
+    .arena-hub-copy h1 { font-size: 30px; }
+  }
+  @media (max-width: 639px) {
+    .arena-entry-copy { min-height: 430px; padding-top: 0; }
+    .arena-entrance .arena-visual { height: 640px; }
+    .arena-hub-copy { max-width: 100%; padding-top: 190px; }
+    .arena-hub-copy h1 { font-size: 30px; }
+    .arena-hub-scrim { background: linear-gradient(0deg, hsl(var(--background) / .95), transparent 85%); }
+    .arena-page-banner h2 { font-size: 22px; }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
   }
