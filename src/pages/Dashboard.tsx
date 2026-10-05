@@ -5,7 +5,7 @@ import StatCard from '@/components/StatCard';
 import { Trophy, Swords, BookOpen, TrendingUp, Target, Flame, Bot, Coins, ArrowRight, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import arenaStage from '@/assets/arena-stage.jpg';
+import ArenaVisual from '@/components/arena/ArenaVisual';
 
 const modeCards = [
   {
@@ -53,11 +53,11 @@ const Dashboard = () => {
   return (
     <div className="mx-auto max-w-6xl space-y-8 pb-10">
       <header className="relative isolate min-h-[350px] overflow-hidden border-b border-primary/50 px-6 py-8 sm:px-10 sm:py-10 md:min-h-[390px]">
-        <img src={arenaStage} width={1536} height={1024} alt="Skill Arena championship stage" className="absolute inset-0 -z-20 h-full w-full object-cover object-center opacity-70" />
-        <div className="absolute inset-0 -z-10 bg-gradient-to-r from-background via-background/85 to-background/25" />
-        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="flex min-h-[290px] max-w-xl flex-col justify-center">
+        <ArenaVisual variant="hub" className="absolute inset-0 -z-20" />
+        <div className="arena-hub-scrim pointer-events-none absolute inset-0 -z-10" />
+        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="arena-hub-copy flex min-h-[290px] max-w-xl flex-col justify-center">
           <p className="mb-4 font-mono text-xs font-bold uppercase text-accent">● Arena online <span className="mx-2 text-muted-foreground">/</span> Player: {user.username}</p>
-          <h1 className="arena-title font-display text-4xl font-black uppercase leading-none text-foreground sm:text-5xl lg:text-6xl">Your next<br /><span className="text-primary">move starts here.</span></h1>
+          <h1 className="arena-title font-display text-3xl font-black uppercase leading-none text-foreground sm:text-4xl lg:text-5xl">Your next<br /><span className="text-primary">move starts here.</span></h1>
           <p className="mt-4 max-w-md text-sm text-foreground/85 sm:text-base">Train your skills or take on an ELO-matched challenger. The choice is yours.</p>
           <div className="mt-7 flex flex-wrap gap-3">
             <Button size="lg" asChild className="bg-primary text-primary-foreground hover:bg-primary/90"><Link to="/battle">Enter Battle <Swords className="ml-1 size-4" /></Link></Button>

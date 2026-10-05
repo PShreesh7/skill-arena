@@ -5,7 +5,7 @@ import { Swords, Zap, Trophy, ArrowRight, Loader2, Mail, KeyRound } from 'lucide
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import arenaStage from '@/assets/arena-stage.jpg';
+import ArenaVisual from '@/components/arena/ArenaVisual';
 const Landing = () => {
   const [mode, setMode] = useState<'login' | 'signup' | 'forgot' | 'resend'>('login');
   const [email, setEmail] = useState('');
@@ -114,18 +114,18 @@ const Landing = () => {
     forgot: 'Send Reset Link',
     resend: 'Resend Email'
   };
-  return <div className="auth-screen relative min-h-screen overflow-hidden bg-background">
-    <img src={arenaStage} width={1536} height={1024} alt="A glowing trophy in the Skill Arena" className="absolute inset-0 h-full w-full object-cover object-center opacity-60" />
-    <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/65 to-background" />
+  return <div className="auth-screen arena-entrance relative isolate min-h-screen overflow-hidden bg-background">
+    <ArenaVisual variant="entrance" className="absolute inset-x-0 top-0 -z-20 h-screen min-h-[640px]" />
+    <div className="arena-entrance-scrim pointer-events-none absolute inset-0 -z-10" />
     <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col px-5 py-7 sm:px-8 lg:px-12">
       <div className="flex items-center gap-3 text-primary"><span className="flex size-9 items-center justify-center border border-primary/60 bg-background/80 shadow-[0_0_22px_hsl(var(--primary)/0.3)]"><Swords className="size-5" /></span><span className="font-display text-sm font-bold uppercase text-foreground">Skill Arena</span><span className="ml-auto hidden font-mono text-xs uppercase text-accent sm:block">System Online / Season 04</span></div>
       <div className="grid flex-1 items-center gap-10 py-10 lg:grid-cols-[minmax(0,1fr)_minmax(340px,420px)] lg:gap-16">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="arena-entry-copy max-w-2xl self-start">
           <p className="mb-4 font-mono text-xs font-bold uppercase text-accent">// Your arena awaits</p>
-          <h1 className="arena-title font-display text-5xl font-black uppercase leading-[0.95] text-primary sm:text-7xl lg:text-8xl">SKILL<br /><span className="text-accent">ARENA</span></h1>
-          <p className="mt-6 max-w-lg text-lg font-medium leading-relaxed text-foreground">Your code is your weapon. Your rank is earned.</p>
+          <h1 className="arena-title font-display text-5xl font-black uppercase leading-[0.95] text-primary sm:text-6xl lg:text-6xl">SKILL <span className="text-accent">ARENA</span></h1>
+          <p className="mt-4 max-w-lg text-base font-medium leading-relaxed text-foreground">Your code is your weapon. Your rank is earned.</p>
           <p className="mt-2 max-w-lg text-sm text-muted-foreground">AI-powered challenges, ELO-ranked battles, and a path to mastery.</p>
-          <div className="mt-8 flex flex-wrap gap-2 font-mono text-[10px] uppercase sm:text-xs"><span className="border border-primary/50 bg-background/70 px-3 py-2 text-primary"><Zap className="mr-1 inline size-3" /> Adaptive assessment</span><span className="border border-accent/50 bg-background/70 px-3 py-2 text-accent"><Swords className="mr-1 inline size-3" /> Ranked battles</span><span className="border border-secondary/50 bg-background/70 px-3 py-2 text-secondary"><Trophy className="mr-1 inline size-3" /> Earn your ELO</span></div>
+          <div className="mt-5 flex flex-wrap gap-2 font-mono text-[10px] uppercase"><span className="border border-primary/50 bg-background/70 px-3 py-2 text-primary"><Zap className="mr-1 inline size-3" /> Adaptive assessment</span><span className="border border-accent/50 bg-background/70 px-3 py-2 text-accent"><Swords className="mr-1 inline size-3" /> Ranked battles</span><span className="border border-secondary/50 bg-background/70 px-3 py-2 text-secondary"><Trophy className="mr-1 inline size-3" /> Earn your ELO</span></div>
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="arena-auth-shell w-full border border-accent/60 bg-background/90 p-6 backdrop-blur-xl sm:p-8">
           <div className="mb-6 flex items-center gap-2 border-b border-border pb-4 font-mono text-[10px] uppercase text-primary"><span className="size-2 animate-pulse rounded-full bg-primary" /> Access terminal <span className="ml-auto text-muted-foreground">01 / Identity</span></div>

@@ -3,6 +3,7 @@ import AppSidebar from './AppSidebar';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { useUser } from '@/contexts/UserContext';
 import { Activity, Coins, Cpu, Gauge } from 'lucide-react';
+import ArenaPageBanner from './arena/ArenaPageBanner';
 
 const telemetry = 'WARP_MATCH #9482 // CYBER_PHANTOM VS VORTEX_DEV [ROUND 02 IN PROGRESS] • ASIA-EAST // 14ms • NET_SYNC: 99.98% • ';
 
@@ -34,7 +35,8 @@ const AppLayout = () => {
               <div className="hidden items-center gap-2 bg-background px-3 py-2 xl:flex"><Cpu className="size-3.5 text-glow-purple" /><b className="text-xs text-glow-purple">8 CORES</b></div>
             </div>}
           </header>
-          <main className="scanline mx-auto w-full max-w-[1500px] flex-1 overflow-y-auto p-4 scroll-smooth md:p-6 lg:p-8">
+          <main className="arena-interior scanline mx-auto w-full max-w-[1500px] flex-1 overflow-y-auto p-4 scroll-smooth md:p-6 lg:p-8">
+            <ArenaPageBanner />
             <Outlet />
           </main>
         </div>
