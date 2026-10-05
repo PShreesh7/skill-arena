@@ -103,11 +103,12 @@ function SkillCore({ variant, palette, motion }: { variant: ArenaVariant; palett
 function World({ palette, variant, pointer, motion }: { palette: Palette; variant: ArenaVariant; pointer: React.MutableRefObject<Pointer>; motion: boolean }) {
   const target = useMemo(() => new THREE.Vector3(), []);
   const compact = variant !== 'entrance';
-  useFrame(({ camera }, rawDelta) => {
+  useFrame(({ camera, size }, rawDelta) => {
     const dt = Math.min(rawDelta, 0.05);
-    target.set(6 + (motion ? pointer.current.x * 1.4 : 0), 5 + (motion ? pointer.current.y * 0.7 : 0), compact ? 13 : 15);
+    const narrowEntrance = !compact && size.width < 640;
+    target.set(6 + (motion ? pointer.current.x * 1.4 : 0), 5 + (motion ? pointer.current.y * 0.7 : 0), compact ? 13 : narrowEntrance ? 19 : 15);
     camera.position.lerp(target, 1 - Math.exp(-3 * dt));
-    camera.lookAt(compact ? -2.7 : -0.5, 1, 0);
+    camera.lookAt(compact ? -2.7 : narrowEntrance ? 0 : 2.5, narrowEntrance ? 4.4 : compact ? 1 : 2.2, 0);
   });
   return <>
     <color attach="background" args={[palette.ground]} />
@@ -162,7 +163,7 @@ export default function ArenaScene({ variant }: { variant: ArenaVariant }) {
     return () => { observer.disconnect(); media.removeEventListener('change', updateMotion); document.removeEventListener('visibilitychange', updateVisible); window.removeEventListener('pointermove', move); };
   }, []);
   return <div ref={host} className="arena-canvas">
-    {palette && <Canvas dpr={1} camera={{ position: [6, 5, variant === 'entrance' ? 15 : 13], fov: variant === 'entrance' ? 48 : 40 }} frameloop={active && visible && !reduced ? 'always' : 'demand'} gl={{ antialias: true, powerPreference: 'low-power' }} onCreated={({ gl, camera }) => { camera.lookAt(variant === 'entrance' ? -0.5 : -2.7, 1, 0); gl.domElement.dataset.ready = 'true'; }}>
+    {palette && <Canvas dpr={1} camera={{ position: [6, 5, variant === 'entrance' ? 15 : 13], fov: variant === 'entrance' ? 48 : 40 }} frameloop={active && visible && !reduced ? 'always' : 'demand'} gl={{ antialias: true, powerPreference: 'low-power' }} onCreated={({ gl, camera, size }) => { camera.lookAt(variant === 'entrance' ? size.width < 640 ? 0 : 2.5 : -2.7, variant === 'entrance' ? size.width < 640 ? 4.4 : 2.2 : 1, 0); gl.domElement.dataset.ready = 'true'; }}>
       <Suspense fallback={null}><World palette={palette} variant={variant} pointer={pointer} motion={!reduced && visible && active} /></Suspense>
     </Canvas>}
   </div>;
